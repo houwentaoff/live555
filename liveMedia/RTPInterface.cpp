@@ -219,6 +219,9 @@ Boolean RTPInterface::sendPacket(unsigned char* packet, unsigned packetSize) {
 void RTPInterface
 ::startNetworkReading(TaskScheduler::BackgroundHandlerProc* handlerProc) {
   // Normal case: Arrange to read UDP packets:
+/* :TODO:2014/9/12 13:22:55:Sean:  */
+	printf("rtcp scheduler %p\n",   &envir().taskScheduler());
+/* :TODO:End---  */
   envir().taskScheduler().
     turnOnBackgroundReadHandling(fGS->socketNum(), handlerProc, fOwner);
 

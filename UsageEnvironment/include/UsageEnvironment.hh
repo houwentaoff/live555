@@ -123,7 +123,10 @@ public:
 				     void* clientData);
   // Combines "unscheduleDelayedTask()" with "scheduleDelayedTask()"
   // (setting "task" to the new task token).
-
+ /* :TODO:2014/9/12 13:39:10:Sean:  */
+	virtual void scheduleNoDelayedTask(TaskFunc* proc, void* clientData) = 0;
+  
+ /* :TODO:End---  */
   // For handling socket operations in the background (from the event loop):
   typedef void BackgroundHandlerProc(void* clientData, int mask);
     // Possible bits to set in "mask".  (These are deliberately defined

@@ -85,6 +85,9 @@ public:
   virtual TaskToken scheduleDelayedTask(int64_t microseconds, TaskFunc* proc,
 				void* clientData);
   virtual void unscheduleDelayedTask(TaskToken& prevTask);
+ /* :TODO:2014/9/12 13:35:16:Sean: added */
+  virtual void scheduleNoDelayedTask(TaskFunc* proc, void* clientData);
+ /* :TODO:End---  */
 
   virtual void doEventLoop(char* watchVariable);
 
@@ -101,6 +104,10 @@ protected:
 
   // To implement background reads:
   HandlerSet* fHandlers;
+ /* :TODO:2014/9/12 13:42:54:Sean:  */
+	TaskFunc* fNoDelayFunc;
+  	void* fNoDelayClientData;
+ /* :TODO:End---  */
   int fLastHandledSocketNum;
 
   // To implement event triggers:

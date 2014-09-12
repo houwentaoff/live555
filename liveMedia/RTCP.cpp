@@ -158,6 +158,10 @@ RTCPInstance::RTCPInstance(UsageEnvironment& env, Groupsock* RTCPgs,
   OutPacketBuffer::maxSize = savedMaxSize;
   if (fOutBuf == NULL) return;
 
+ /* :TODO:2014/9/12 13:25:40:Sean:  */
+   printf("RTCP: turnOn: sock %d, port %d\n", RTCPgs->socketNum(), ntohs(RTCPgs->port().num()));	
+ /* :TODO:End---  */
+
   if (fSource != NULL && fSource->RTPgs() == RTCPgs) {
     // We're receiving RTCP reports that are multiplexed with RTP, so ask the RTP source
     // to give them to us:

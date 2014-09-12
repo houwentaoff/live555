@@ -149,7 +149,18 @@ void MultiFramedRTPSink::setFramePadding(unsigned numPaddingBytes) {
 Boolean MultiFramedRTPSink::continuePlaying() {
   // Send the first packet.
   // (This will also schedule any future sends.)
+/* :TODO:2014/9/12 13:13:21:Sean:  */
+#if 0   //orgin
   buildAndSendPacket(True);
+#else
+#if 1		//choose schedule method
+	envir().taskScheduler().scheduleNoDelayedTask((TaskFunc*)sendNext, this);
+#else
+	nextTask() = envir().taskScheduler().scheduleDelayedTask(0, (TaskFunc*)sendNext, this);
+#endif
+  printf("schedule first send %p\n", &(envir().taskScheduler()));
+#endif
+/* :TODO:End---  */
   return True;
 }
 

@@ -95,7 +95,18 @@ void OnDemandServerMediaSubsession
 		      Port& serverRTPPort,
 		      Port& serverRTCPPort,
 		      void*& streamToken) {
-  if (destinationAddress == 0) destinationAddress = clientAddress;
+  if (destinationAddress == 0) {
+      destinationAddress = clientAddress;
+/* :TODO:2014/9/12 13:17:28:Sean:  */
+     printf("client requests unicast 0x%x\n", clientAddress);
+/* :TODO:End---  */
+  }
+/* :TODO:2014/9/12 13:17:28:Sean: no multicastAddress*/
+  if (isMulticast) {
+//     destinationAddress = multicastAddress;
+     printf("client requests mulicast, port %d\n", fInitialPortNum);	
+  }
+/* :TODO:End---  */
   struct in_addr destinationAddr; destinationAddr.s_addr = destinationAddress;
   isMulticast = False;
 
@@ -189,7 +200,7 @@ void OnDemandServerMediaSubsession
     streamToken = fLastStreamToken
       = new StreamState(*this, serverRTPPort, serverRTCPPort, rtpSink, udpSink,
 			streamBitrate, mediaSource,
-			rtpGroupsock, rtcpGroupsock);
+			rtpGroupsock, rtcpGroupsock/*Sean added*/, fParentSession->envir());
   }
 
   // Record these destinations as being for this client session id:
@@ -211,6 +222,9 @@ void OnDemandServerMediaSubsession::startStream(unsigned clientSessionId,
 						ServerRequestAlternativeByteHandler* serverRequestAlternativeByteHandler,
 						void* serverRequestAlternativeByteHandlerClientData) {
   StreamState* streamState = (StreamState*)streamToken;
+/* :TODO:2014/9/12 13:59:55:Sean:  */
+  printf("startStream\n"); 
+/* :TODO:End---  */
   Destinations* destinations
     = (Destinations*)(fDestinationsHashTable->Lookup((char const*)clientSessionId));
   if (streamState != NULL) {
@@ -319,6 +333,10 @@ FramedSource* OnDemandServerMediaSubsession::getStreamSource(void* streamToken) 
 void OnDemandServerMediaSubsession::deleteStream(unsigned clientSessionId,
 						 void*& streamToken) {
   StreamState* streamState = (StreamState*)streamToken;
+
+ /* :TODO:2014/9/12 13:27:02:Sean:  */
+  printf("deleteStream...\n");
+ /* :TODO:End---  */
 
   // Look up (and remove) the destinations for this client session:
   Destinations* destinations
@@ -442,23 +460,75 @@ static void afterPlayingStreamState(void* clientData) {
   // subsequently re-play the stream starting from somewhere other than the end.
   // (This can be done only on streams that have a known duration.)
 }
-
+ /* :TODO:2014/9/12 15:04:16:Sean:  */
 StreamState::StreamState(OnDemandServerMediaSubsession& master,
                          Port const& serverRTPPort, Port const& serverRTCPPort,
 			 RTPSink* rtpSink, BasicUDPSink* udpSink,
 			 unsigned totalBW, FramedSource* mediaSource,
-			 Groupsock* rtpGS, Groupsock* rtcpGS)
+			 Groupsock* rtpGS, Groupsock* rtcpGS/*Sean Hou: added */, UsageEnvironment& rtcpEnv)
   : fMaster(master), fAreCurrentlyPlaying(False), fReferenceCount(1),
     fServerRTPPort(serverRTPPort), fServerRTCPPort(serverRTCPPort),
     fRTPSink(rtpSink), fUDPSink(udpSink), fStreamDuration(master.duration()),
     fTotalBW(totalBW), fRTCPInstance(NULL) /* created later */,
-    fMediaSource(mediaSource), fStartNPT(0.0), fRTPgs(rtpGS), fRTCPgs(rtcpGS) {
+    fMediaSource(mediaSource), fStartNPT(0.0), fRTPgs(rtpGS), fRTCPgs(rtcpGS), fRtcpEnv(rtcpEnv)
+{
 }
-
+ /* :TODO:End---  */
 StreamState::~StreamState() {
+ /* :TODO:2014/9/12 14:01:17:Sean:  */
+	printf("~StreamState\n");   
+ /* :TODO:End--- */
   reclaim();
 }
+ /* :TODO:2014/9/12 14:19:34:Sean:  */
+static int set_realtime_schedule(pthread_t thread_id)
+{
+	struct sched_param param;
+	int policy = SCHED_FIFO;
+	int priority = 90;
+	if (!thread_id)
+		return -1;
+	memset(&param, 0, sizeof(param));
+	param.sched_priority = priority;
+	if (pthread_setschedparam(thread_id, policy, &param) < 0)
+		perror("pthread_setschedparam");
+	pthread_getschedparam(thread_id, &policy, &param);
+	if (param.sched_priority != priority)
+		return -1;
+	return 0;
+}
 
+void* StreamState::workingThreadFunc(void* arg) 
+{
+	StreamState *streamState = (StreamState *)arg;
+	printf("scheduler %p looping...\n", &(streamState->envir().taskScheduler()));
+	streamState->envir().taskScheduler().doEventLoop();
+	
+	return NULL;
+}
+
+int StreamState::createWorkingThread()
+{
+	if (pthread_create(&fWorkingThreadID, NULL, workingThreadFunc, this) < 0) {
+		printf("createWorkingThread error\n");
+		return -1;
+	}
+	if (set_realtime_schedule(fWorkingThreadID) < 0) {
+		printf("set realtime schedule error\n");
+		return -1;
+	}
+	return 0;
+}
+
+int StreamState::cancelWorkingThread()
+{
+//	printf("cancel stream Thread...\n");	//jay
+	pthread_cancel(fWorkingThreadID);
+	pthread_join(fWorkingThreadID, NULL);
+//	printf("cancel done\n");
+	return 0;
+}
+ /* :TODO:End---  */
 void StreamState
 ::startPlaying(Destinations* dests,
 	       TaskFunc* rtcpRRHandler, void* rtcpRRHandlerClientData,
@@ -468,13 +538,24 @@ void StreamState
 
   if (fRTCPInstance == NULL && fRTPSink != NULL) {
     // Create (and start) a 'RTCP instance' for this RTP sink:
+ /* :TODO:2014/9/12 15:05:32:Sean:  */
+#if 0
     fRTCPInstance
       = RTCPInstance::createNew(fRTPSink->envir(), fRTCPgs,
 				fTotalBW, (unsigned char*)fMaster.fCNAME,
 				fRTPSink, NULL /* we're a server */);
         // Note: This starts RTCP running automatically
   }
-
+#else
+		fRTCPInstance
+	//		= RTCPInstance::createNew(fRTPSink->envir(), fRTCPgs,
+			= RTCPInstance::createNew(fRtcpEnv, fRTCPgs,
+			fTotalBW, (unsigned char*)fMaster.fCNAME,
+			fRTPSink, NULL /* we're a server */);
+		// Note: This starts RTCP running automatically
+	}
+#endif
+ /* :TODO:End---  */
   if (dests->isTCP) {
     // Change RTP and RTCP to use the TCP socket instead of UDP:
     if (fRTPSink != NULL) {
@@ -514,6 +595,9 @@ void StreamState
       fUDPSink->startPlaying(*fMediaSource, afterPlayingStreamState, this);
       fAreCurrentlyPlaying = True;
     }
+ /* :TODO:2014/9/12 14:22:37:Sean:  */
+    createWorkingThread();
+ /* :TODO:End---  */
   }
 }
 
@@ -557,6 +641,9 @@ void StreamState::endPlaying(Destinations* dests) {
 
 void StreamState::reclaim() {
   // Delete allocated media objects
+ /* :TODO:2014/9/12 15:50:27:Sean:  */
+ 	cancelWorkingThread();   
+ /* :TODO:End---  */
   Medium::close(fRTCPInstance) /* will send a RTCP BYE */; fRTCPInstance = NULL;
   Medium::close(fRTPSink); fRTPSink = NULL;
   Medium::close(fUDPSink); fUDPSink = NULL;

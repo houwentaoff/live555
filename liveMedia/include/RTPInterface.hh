@@ -22,7 +22,9 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 #ifndef _RTP_INTERFACE_HH
 #define _RTP_INTERFACE_HH
-
+ /* :TODO:2014/9/12 14:56:55:Sean:  */
+#include <pthread.h>
+ /* :TODO:End---  */
 #ifndef _MEDIA_HH
 #include <Media.hh>
 #endif
@@ -83,7 +85,10 @@ public:
 
   // A hack for supporting handlers for RTCP packets arriving interleaved over TCP:
   int nextTCPReadStreamSocketNum() const { return fNextTCPReadStreamSocketNum; }
-  unsigned char nextTCPReadStreamChannelId() const { return fNextTCPReadStreamChannelId; }
+  unsigned char nextTCPReadStreamChannelId() const { return fNextTCPReadStreamChannelId; } 
+/* :TODO:2014/9/12 14:33:30:Sean:  */
+    void createFifo(void);
+/* :TODO:End--- */
 
 private:
   // Helper functions for sending a RTP or RTCP packet over a TCP connection:

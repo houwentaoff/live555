@@ -19,6 +19,10 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 #include "BasicUsageEnvironment0.hh"
 #include "HandlerSet.hh"
+ /* :TODO:2014/9/12 14:57:43:Sean:  */
+#include <stdio.h>
+#include <pthread.h>
+ /* :TODO:End---  */
 
 ////////// A subclass of DelayQueueEntry,
 //////////     used to implement BasicTaskScheduler0::scheduleDelayedTask()
@@ -42,15 +46,16 @@ private:
 
 
 ////////// BasicTaskScheduler0 //////////
-
+ /* :TODO:2014/9/12 13:48:18:Sean:  added  fNoDelayFunc(NULL), fNoDelayClientData(NULL),*/
 BasicTaskScheduler0::BasicTaskScheduler0()
-  : fLastHandledSocketNum(-1), fTriggersAwaitingHandling(0), fLastUsedTriggerMask(1), fLastUsedTriggerNum(MAX_NUM_EVENT_TRIGGERS-1) {
+  : fNoDelayFunc(NULL), fNoDelayClientData(NULL), fLastHandledSocketNum(-1), fTriggersAwaitingHandling(0), fLastUsedTriggerMask(1), fLastUsedTriggerNum(MAX_NUM_EVENT_TRIGGERS-1) {
   fHandlers = new HandlerSet;
   for (unsigned i = 0; i < MAX_NUM_EVENT_TRIGGERS; ++i) {
     fTriggeredEventHandlers[i] = NULL;
     fTriggeredEventClientDatas[i] = NULL;
   }
 }
+ /* :TODO:End--- */
 
 BasicTaskScheduler0::~BasicTaskScheduler0() {
   delete fHandlers;
@@ -72,7 +77,13 @@ void BasicTaskScheduler0::unscheduleDelayedTask(TaskToken& prevTask) {
   prevTask = NULL;
   delete alarmHandler;
 }
-
+ /* :TODO:2014/9/12 13:37:09:Sean: added */
+void BasicTaskScheduler0::scheduleNoDelayedTask(TaskFunc* proc,
+						 void* clientData) {
+	fNoDelayFunc = proc;
+	fNoDelayClientData = clientData;
+}
+ /* :TODO:End---  */
 void BasicTaskScheduler0::doEventLoop(char* watchVariable) {
   // Repeatedly loop, handling readble sockets and timed events:
   while (1) {

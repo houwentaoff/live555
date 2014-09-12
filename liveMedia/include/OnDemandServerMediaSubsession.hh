@@ -101,12 +101,19 @@ protected: // new virtual functions, defined by all subclasses
 public:
   void multiplexRTCPWithRTP() { fMultiplexRTCPWithRTP = True; }
   // An alternative to passing the "multiplexRTCPWithRTP" parameter as True in the constructor
-
+/* :TODO:2014/9/12 12:43:00:Sean:  changed it from private to protected*/
+#if 0  //orgin
 private:
   void setSDPLinesFromRTPSink(RTPSink* rtpSink, FramedSource* inputSource,
 			      unsigned estBitrate);
       // used to implement "sdpLines()"
-
+#else
+protected:  
+  void setSDPLinesFromRTPSink(RTPSink* rtpSink, FramedSource* inputSource,
+					  unsigned estBitrate);
+			// used to implement "sdpLines()"
+#endif
+/* :TODO:End---  */
 protected:
   char* fSDPLines;
   HashTable* fDestinationsHashTable; // indexed by client session id
@@ -148,11 +155,13 @@ public:
 
 class StreamState {
 public:
+ /* :TODO:2014/9/12 15:01:27:Sean:  */
   StreamState(OnDemandServerMediaSubsession& master,
               Port const& serverRTPPort, Port const& serverRTCPPort,
 	      RTPSink* rtpSink, BasicUDPSink* udpSink,
 	      unsigned totalBW, FramedSource* mediaSource,
-	      Groupsock* rtpGS, Groupsock* rtcpGS);
+	      Groupsock* rtpGS, Groupsock* rtcpGS, UsageEnvironment& fRtcpEnv);
+ /* :TODO:End---  */
   virtual ~StreamState();
 
   void startPlaying(Destinations* destinations,
@@ -175,6 +184,15 @@ public:
   FramedSource* mediaSource() const { return fMediaSource; }
   float& startNPT() { return fStartNPT; }
 
+ /* :TODO:2014/9/12 14:17:24:Sean:  */
+  	UsageEnvironment& envir() const {return fMaster.envir(); }
+	int createWorkingThread();
+	int cancelWorkingThread();
+ /* :TODO:End---  */
+ /* :TODO:2014/9/12 15:19:50:Sean:  */
+private:	
+	static void* workingThreadFunc(void *);    
+ /* :TODO:End--- */
 private:
   OnDemandServerMediaSubsession& fMaster;
   Boolean fAreCurrentlyPlaying;
@@ -194,6 +212,11 @@ private:
 
   Groupsock* fRTPgs;
   Groupsock* fRTCPgs;
+ /* :TODO:2014/9/12 14:14:19:Sean:  */
+  UsageEnvironment& fRtcpEnv;
+  
+  pthread_t fWorkingThreadID;
+ /* :TODO:End---  */
 };
 
 #endif
