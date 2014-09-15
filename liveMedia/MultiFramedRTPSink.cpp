@@ -44,6 +44,9 @@ MultiFramedRTPSink::MultiFramedRTPSink(UsageEnvironment& env,
 	    rtpPayloadFormatName, numChannels),
     fOutBuf(NULL), fCurFragmentationOffset(0), fPreviousFrameEndedFragmentation(False),
     fOnSendErrorFunc(NULL), fOnSendErrorData(NULL) {
+ /* :TODO:2014/9/15 17:06:31:Sean:  */
+    fIsFirstPacket = True;
+ /* :TODO:End---  */
   setPacketSizes(1000, 1448);
       // Default max packet size (1500, minus allowance for IP, UDP, UMTP headers)
       // (Also, make it a multiple of 4 bytes, just in case that matters.)
@@ -174,8 +177,11 @@ void MultiFramedRTPSink::stopPlaying() {
 }
 
 void MultiFramedRTPSink::buildAndSendPacket(Boolean isFirstPacket) {
+ /* :TODO:2014/9/15 17:07:00:Sean:  */
+#if 0
   fIsFirstPacket = isFirstPacket;
-
+#endif
+ /* :TODO:End---  */
   // Set up the RTP header:
   unsigned rtpHdr = 0x80000000; // RTP version 2; marker ('M') bit not set (by default; it can be set later)
   rtpHdr |= (fRTPPayloadType<<16);
@@ -245,6 +251,9 @@ void MultiFramedRTPSink
   if (fIsFirstPacket) {
     // Record the fact that we're starting to play now:
     gettimeofday(&fNextSendTime, NULL);
+ /* :TODO:2014/9/15 17:02:59:Sean:  */
+    fIsFirstPacket = False;
+ /* :TODO:End---  */
   }
 
   fMostRecentPresentationTime = presentationTime;

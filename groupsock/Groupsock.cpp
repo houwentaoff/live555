@@ -259,9 +259,12 @@ Boolean Groupsock::output(UsageEnvironment& env, u_int8_t ttlToSend,
       }
     }
     if (!writeSuccess) break;
+/* :TODO:2014/9/15 16:53:24:Sean:  optm*/
+#if 0  //optm 
     statsOutgoing.countPacket(bufferSize);
     statsGroupOutgoing.countPacket(bufferSize);
-
+#endif
+/* :TODO:End---  */
     // Then, forward to our members:
     int numMembers = 0;
     if (!members().IsEmpty()) {

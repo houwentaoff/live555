@@ -124,7 +124,13 @@ RTPInterface::RTPInterface(Medium* owner, Groupsock* gs)
   // The reason for this is that, in some OSs, reads on a blocking socket can (allegedly) sometimes block,
   // even if the socket was previously reported (e.g., by "select()") as having data available.
   // (This can supposedly happen if the UDP checksum fails, for example.)
+ /* :TODO:2014/9/15 17:16:55:Sean:  close*/
+#if 0//orgin
   makeSocketNonBlocking(fGS->socketNum());
+#else
+  ;
+#endif
+ /* :TODO:End---  */
   increaseSendBufferTo(envir(), fGS->socketNum(), 50*1024);
 }
 

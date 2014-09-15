@@ -108,7 +108,13 @@ Boolean movieHeightOptionSet = False;
 unsigned movieFPS = 15; // default
 Boolean movieFPSOptionSet = False;
 char const* fileNamePrefix = "";
+ /* :TODO:2014/9/15 17:21:41:Sean:  */
+#if 0
 unsigned fileSinkBufferSize = 100000;
+#else// change 100000 into 2*100000,to adapt to GOKE 720p encoding or bigger
+unsigned fileSinkBufferSize = 2*100000;
+#endif
+ /* :TODO:End---  */
 unsigned socketInputBufferSize = 0;
 Boolean packetLossCompensate = False;
 Boolean syncStreams = False;
