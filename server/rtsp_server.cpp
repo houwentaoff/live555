@@ -234,7 +234,9 @@ int main(int argc, char** argv)
 	// Repeat the above with each <username>, <password> that you wish to allow
 	// access to the server.
 #endif
-
+/* :TODO:2014/9/15 16:18:27:Sean:  default is 300000 导致挂掉的元凶*/
+      OutPacketBuffer::maxSize = 2000000;
+/* :TODO:End---  */
 	// Create the RTSP server:
 	RTSPServer* rtspServer = RTSPServer::createNew(*env, 554, authDB);
 	if (rtspServer == NULL) {
