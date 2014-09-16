@@ -60,12 +60,14 @@ void BasicTaskScheduler::SingleStep(unsigned maxDelayTime) {
   fd_set readSet = fReadSet; // make a copy for this select() call
   fd_set writeSet = fWriteSet; // ditto
   fd_set exceptionSet = fExceptionSet; // ditto
- /* :TODO:2014/9/12 13:45:31:Sean:  */
-//	printf("env %p, fNoDelayFunc %p\n", this, fNoDelayFunc);
+ /* :TODO:2014/9/12 13:45:31:Sean:  added*/
+	printf("env 0x%x, fNoDelayFunc 0x%x\n", this, fNoDelayFunc);
+#if 1
 	if (fNoDelayFunc != NULL) {
 		(*fNoDelayFunc)(fNoDelayClientData);
 		return;
 	}
+#endif
  /* :TODO:End---  */
   DelayInterval const& timeToDelay = fDelayQueue.timeToNextAlarm();
   struct timeval tv_timeToDelay;

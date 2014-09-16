@@ -30,6 +30,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #include "MyJPEGVideoSource.hh"
 #include <basetypes.h>
 #include "iav_drv.h"
+#include "../debug/debug.h"
 
 H264VideoFileServerMediaSubsession*
 H264VideoFileServerMediaSubsession::createNew(UsageEnvironment& env,
@@ -132,7 +133,9 @@ FramedSource* H264VideoFileServerMediaSubsession
 		fFileSize = fileSource->fileSize();
 
 		// Create a framer for the Video Elementary Stream:
+        PRT_ERR("fEncType is [%d]\n", fEncType);
 		if (fEncType == IAV_ENCODE_H264) {
+
 			return MyH264VideoStreamFramer::createNew(envir(), fileSource);
 		} else if(fEncType == IAV_ENCODE_MJPEG) {
 			return NULL; //not realized

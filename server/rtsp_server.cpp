@@ -24,11 +24,11 @@
 #include "liveMedia.hh"
 #include "BasicUsageEnvironment.hh"
 #include "GroupsockHelper.hh"
-#include "MyH264VideoStreamFramer.hh"
-#include "MyH264VideoRTPSink.hh"
+//#include "MyH264VideoStreamFramer.hh"
+//#include "MyH264VideoRTPSink.hh"
 #include "H264VideoFileServerMediaSubsession.hh"
-#include "MyJPEGVideoSource.hh"
-#include "MyJPEGVideoRTPSink.hh"
+//#include "MyJPEGVideoSource.hh"
+//#include "MyJPEGVideoRTPSink.hh"
 
 #include <fcntl.h>
 #include <sys/ioctl.h>
@@ -38,8 +38,9 @@
 #include "bsreader.h"
 #include "config.h"
 
-#ifdef CONFIG_ARCH_A5S
-#define	MAX_ENCODE_STREAM_NUM	(4)
+
+#ifdef CONFIG_ARCH_GK1107
+#define	MAX_ENCODE_STREAM_NUM	(2)
 #else
 #ifdef CONFIG_ARCH_A7
 #define	MAX_ENCODE_STREAM_NUM	(2)
@@ -50,9 +51,11 @@
 #endif
 #endif
 
+#define	MAX_ENCODE_STREAM_NUM	(2)
+
 UsageEnvironment* env;
 
-char const* descriptionString = "Session streamed by \"Amba RTSP Server\"";
+char const* descriptionString = "Session streamed by \"GOKE RTSP Server\"";
 
 
 static portNumBits clientPort;
@@ -145,11 +148,14 @@ int bsreader()
 	memset(&init_data, 0, sizeof(init_data));
 	init_data.fd_iav = fd_iav;
 	init_data.max_stream_num = MAX_ENCODE_STREAM_NUM;
-	init_data.ring_buf_size[0] = 1024*1024*4;  // 4MB
-	init_data.ring_buf_size[1] = 1024*1024*2;  // 2MB
+	init_data.ring_buf_size[0] = 1024*1024*1;  // 8MB
+	init_data.ring_buf_size[1] = 1024*1024*1;  // 2MB
+ /* :TODO:2014/9/16 13:51:38:Sean:  2*/
+#if 0
 	init_data.ring_buf_size[2] = 1024*1024*1;  // 1MB
 	init_data.ring_buf_size[3] = 1024*1024*1;  // 1MB
-
+#endif
+ /* :TODO:End---  */
 	/* Enable cavlc encoding when configured.
 	 * This option will use more memory in bsreader on A5s arch.
 	 */
@@ -243,7 +249,10 @@ int main(int argc, char** argv)
 		*env << "Failed to create RTSP server: " << env->getResultMsg() << "\n";
 		exit(1);
 	}
-	bsreader();
+	if (0!=bsreader())
+    {
+		exit(-2);
+    }
 
 	setup_streams(rtspServer);
 

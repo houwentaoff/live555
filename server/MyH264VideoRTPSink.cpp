@@ -24,6 +24,7 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #include <basetypes.h>
 #include "iav_drv.h"
 #include "iav_drv_ex.h"
+#include "../debug/debug.h"
 
 
 ////////// H264VideoRTPSink implementation //////////
@@ -80,6 +81,7 @@ Boolean MyH264VideoRTPSink::continuePlaying() {
 	// First, check whether we have a 'fragmenter' class set up yet.
 	// If not, create it now:
   if (fOurFragmenter == NULL) {
+      PRT_DBG("maxSize[%d]\n", OutPacketBuffer::maxSize);
 	  fOurFragmenter = new MyH264FUAFragmenter(envir(), fSource, OutPacketBuffer::maxSize,
 						 ourMaxPacketSize() - 12/*RTP hdr size*/);
 //	  printf("MyH264VideoRTPSink::continuePlaying\n");	//jay

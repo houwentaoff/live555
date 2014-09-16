@@ -178,7 +178,7 @@ void MultiFramedRTPSink::stopPlaying() {
 
 void MultiFramedRTPSink::buildAndSendPacket(Boolean isFirstPacket) {
  /* :TODO:2014/9/15 17:07:00:Sean:  */
-#if 0
+#if 1
   fIsFirstPacket = isFirstPacket;
 #endif
  /* :TODO:End---  */
@@ -411,7 +411,10 @@ void MultiFramedRTPSink::sendPacketIfNecessary() {
   if (fNoFramesLeft) {
     // We're done:
     onSourceClosure();
-  } else {
+  }
+/* :TODO:2014/9/16 16:19:43:Sean:  del*/
+#if 1 //orgin
+  else {
     // We have more frames left to send.  Figure out when the next frame
     // is due to start playing, then make sure that we wait this long before
     // sending the next packet.
@@ -426,10 +429,13 @@ void MultiFramedRTPSink::sendPacketIfNecessary() {
     // Delay this amount of time:
     nextTask() = envir().taskScheduler().scheduleDelayedTask(uSecondsToGo, (TaskFunc*)sendNext, this);
   }
+#endif
+/* :TODO:End---  */
 }
 
 // The following is called after each delay between packet sends:
 void MultiFramedRTPSink::sendNext(void* firstArg) {
+  printf("==>%s():sendNext...\n", __func__);
   MultiFramedRTPSink* sink = (MultiFramedRTPSink*)firstArg;
   sink->buildAndSendPacket(False);
 }
