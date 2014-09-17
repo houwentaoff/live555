@@ -23,7 +23,9 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 #ifndef _SERVER_MEDIA_SESSION_HH
 #define _SERVER_MEDIA_SESSION_HH
-
+ /* :TODO:2014/9/17 19:47:52:Sean:  added*/
+#include "../../debug/debug.h"
+ /* :TODO:End---  */
 #ifndef _MEDIA_HH
 #include "Media.hh"
 #endif

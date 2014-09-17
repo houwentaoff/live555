@@ -50,13 +50,13 @@ MyH264VideoStreamFramer::~MyH264VideoStreamFramer()
 
 void MyH264VideoStreamFramer::doGetNextFrame()
 {
-//	printf("				  StreamFramer::doGetNextFrame\n");		//jay
+	printf("==>%s %s():StreamFramer::doGetNextFrame\n", __FILE__, __func__);		//jay
 	if (fBitstreamParser != NULL)
 		fBitstreamParser->registerReadInterest(fTo, fMaxSize);
 	if (fParser != NULL)
 		fParser->registerReadInterest(fTo, fMaxSize);
 	continueReadProcessing();
-//	printf("				  StreamFramer::doGetNextFrame - end\n");	//jay
+	printf("<==%s %s(): StreamFramer::doGetNextFrame - end\n", __FILE__, __func__);	//jay
 }
 
 Boolean MyH264VideoStreamFramer::isH264VideoStreamFramer() const

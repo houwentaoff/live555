@@ -45,7 +45,7 @@ MultiFramedRTPSink::MultiFramedRTPSink(UsageEnvironment& env,
     fOutBuf(NULL), fCurFragmentationOffset(0), fPreviousFrameEndedFragmentation(False),
     fOnSendErrorFunc(NULL), fOnSendErrorData(NULL) {
  /* :TODO:2014/9/15 17:06:31:Sean:  */
-    fIsFirstPacket = True;
+ // fIsFirstPacket = True;
  /* :TODO:End---  */
   setPacketSizes(1000, 1448);
       // Default max packet size (1500, minus allowance for IP, UDP, UMTP headers)
@@ -153,16 +153,18 @@ Boolean MultiFramedRTPSink::continuePlaying() {
   // Send the first packet.
   // (This will also schedule any future sends.)
 /* :TODO:2014/9/12 13:13:21:Sean:  */
-#if 0   //orgin
+    printf("===>%s:%s()\n", __FILE__, __func__);
+#if 1   //orgin first frame
   buildAndSendPacket(True);
 #else
-#if 1		//choose schedule method
-	envir().taskScheduler().scheduleNoDelayedTask((TaskFunc*)sendNext, this);
+#if 0		//choose schedule method
+	envir().taskScheduler().scheduleNoDelayedTask((TaskFunc*)sendNext, this);//no cap
 #else
-	nextTask() = envir().taskScheduler().scheduleDelayedTask(0, (TaskFunc*)sendNext, this);
+	nextTask() = envir().taskScheduler().scheduleDelayedTask(0, (TaskFunc*)sendNext, this);//no cap
 #endif
   printf("schedule first send %p\n", &(envir().taskScheduler()));
 #endif
+    printf("<===%s:%s()\n", __FILE__, __func__);
 /* :TODO:End---  */
   return True;
 }
@@ -178,7 +180,7 @@ void MultiFramedRTPSink::stopPlaying() {
 
 void MultiFramedRTPSink::buildAndSendPacket(Boolean isFirstPacket) {
  /* :TODO:2014/9/15 17:07:00:Sean:  */
-#if 1
+#if 1 //org
   fIsFirstPacket = isFirstPacket;
 #endif
  /* :TODO:End---  */
@@ -210,7 +212,7 @@ void MultiFramedRTPSink::buildAndSendPacket(Boolean isFirstPacket) {
 
 void MultiFramedRTPSink::packFrame() {
   // Get the next frame.
-
+  printf("==>%s %s():\n", __FILE__, __func__);
   // First, see if we have an overflow frame that was too big for the last pkt
   if (fOutBuf->haveOverflowData()) {
     // Use this frame before reading a new one from the source
@@ -232,6 +234,8 @@ void MultiFramedRTPSink::packFrame() {
     fSource->getNextFrame(fOutBuf->curPtr(), fOutBuf->totalBytesAvailable(),
 			  afterGettingFrame, this, ourHandleClosure, this);
   }
+    printf("<==%s %s():\n", __FILE__, __func__);
+
 }
 
 void MultiFramedRTPSink
@@ -251,8 +255,8 @@ void MultiFramedRTPSink
   if (fIsFirstPacket) {
     // Record the fact that we're starting to play now:
     gettimeofday(&fNextSendTime, NULL);
- /* :TODO:2014/9/15 17:02:59:Sean:  */
-    fIsFirstPacket = False;
+ /* :TODO:2014/9/15 17:02:59:Sean: added */
+ // fIsFirstPacket = False;
  /* :TODO:End---  */
   }
 
@@ -374,7 +378,7 @@ Boolean MultiFramedRTPSink::isTooBigForAPacket(unsigned numBytes) const {
   return fOutBuf->isTooBigForAPacket(numBytes);
 }
 
-void MultiFramedRTPSink::sendPacketIfNecessary() {
+void MultiFramedRTPSink::sendPacketIfNecessary() {//real to send pkg    Sean
   if (fNumFramesUsedSoFar > 0) {
     // Send the packet:
 #ifdef TEST_LOSS
@@ -412,7 +416,7 @@ void MultiFramedRTPSink::sendPacketIfNecessary() {
     // We're done:
     onSourceClosure();
   }
-/* :TODO:2014/9/16 16:19:43:Sean:  del*/
+/* :TODO:2014/9/16 16:19:43:Sean:  del 否则不能播放协商不成功 DESCRIBE 不给回应*/
 #if 1 //orgin
   else {
     // We have more frames left to send.  Figure out when the next frame
@@ -435,7 +439,7 @@ void MultiFramedRTPSink::sendPacketIfNecessary() {
 
 // The following is called after each delay between packet sends:
 void MultiFramedRTPSink::sendNext(void* firstArg) {
-  printf("==>%s():sendNext...\n", __func__);
+ // printf("==>%s():\n", __func__);
   MultiFramedRTPSink* sink = (MultiFramedRTPSink*)firstArg;
   sink->buildAndSendPacket(False);
 }
@@ -444,6 +448,8 @@ void MultiFramedRTPSink::ourHandleClosure(void* clientData) {
   MultiFramedRTPSink* sink = (MultiFramedRTPSink*)clientData;
   // There are no frames left, but we may have a partially built packet
   //  to send
+  printf("==>%s():\n", __func__);
   sink->fNoFramesLeft = True;
   sink->sendPacketIfNecessary();
+  printf("<==%s():\n", __func__);
 }

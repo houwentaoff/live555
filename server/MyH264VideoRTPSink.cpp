@@ -84,7 +84,7 @@ Boolean MyH264VideoRTPSink::continuePlaying() {
       PRT_DBG("maxSize[%d]\n", OutPacketBuffer::maxSize);
 	  fOurFragmenter = new MyH264FUAFragmenter(envir(), fSource, OutPacketBuffer::maxSize,
 						 ourMaxPacketSize() - 12/*RTP hdr size*/);
-//	  printf("MyH264VideoRTPSink::continuePlaying\n");	//jay
+	  PRT_DBG("MyH264VideoRTPSink::continuePlaying\n");	//jay
 	  fSource = fOurFragmenter;
 	}
 	
@@ -216,14 +216,14 @@ void MyH264FUAFragmenter::doGetNextFrame() {
 	  if (fCurDataOffset == 1) { // case 1 or 2
 		  if (fNumValidDataBytes - 1 <= fMaxSize) { // case 1
 		  
-//			printf("		  Fragmenter: small nalu\n");		//jay
+			printf("		  Fragmenter: small nalu\n");		//jay
 			memmove(fTo, &fInputBuffer[1], fNumValidDataBytes - 1);
 			fFrameSize = fNumValidDataBytes - 1;
 			fCurDataOffset = fNumValidDataBytes;
 			
 			} else { // case 2
 			
-//				printf("		  Fragmenter: first fragment\n");		//jay
+				printf("		  Fragmenter: first fragment\n");		//jay
 				// We need to send the NAL unit data as FU-A packets.  Deliver the first
 				// packet now.  Note that we add FU indicator and FU header bytes to the front
 				// of the packet (reusing the existing NAL header byte for the FU header).
@@ -236,7 +236,7 @@ void MyH264FUAFragmenter::doGetNextFrame() {
 			}
 		} else { // case 3
 		
-//			printf("		  Fragmenter: next fragment\n");		//jay
+			printf("		  Fragmenter: next fragment\n");		//jay
 			// We are sending this NAL unit data as FU-A packets.  We've already sent the
 			// first packet (fragment).  Now, send the next fragment.  Note that we add
 			// FU indicator and FU header bytes to the front.	(We reuse these bytes that
@@ -265,7 +265,7 @@ void MyH264FUAFragmenter::doGetNextFrame() {
 		}
 
 		// Complete delivery to the client:
-//	  printf("						  Fragmenter: afterGetting\n");		//jay
+	  printf("						  Fragmenter: afterGetting\n");		//jay
 	  FramedSource::afterGetting(this);
 	}
 }
@@ -275,10 +275,10 @@ void MyH264FUAFragmenter::afterGettingFrame(void* clientData, unsigned frameSize
 					  struct timeval presentationTime,
 					  unsigned durationInMicroseconds) {
   MyH264FUAFragmenter* fragmenter = (MyH264FUAFragmenter*)clientData;
-//	printf("			  Fragmenter::afterGettingFrame\n");	//jay
+	printf("			  Fragmenter::afterGettingFrame\n");	//jay
   fragmenter->afterGettingFrame1(frameSize, numTruncatedBytes, presentationTime,
 				 durationInMicroseconds);
-//	printf("			  Fragmenter::afterGettingFrame - end\n");	//jay
+	printf("			  Fragmenter::afterGettingFrame - end\n");	//jay
 }
 
 void MyH264FUAFragmenter::afterGettingFrame1(unsigned frameSize,

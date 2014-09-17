@@ -21,6 +21,8 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #include "H264or5VideoStreamFramer.hh"
 #include "MPEGVideoStreamParser.hh"
 #include "BitVector.hh"
+//added by Sean
+#define DEBUG
 
 ////////// H264or5VideoStreamParser definition //////////
 

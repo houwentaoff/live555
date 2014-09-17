@@ -51,7 +51,7 @@
 #endif
 #endif
 
-#define	MAX_ENCODE_STREAM_NUM	(2)
+#define	MAX_ENCODE_STREAM_NUM	(4)
 
 UsageEnvironment* env;
 
@@ -148,10 +148,10 @@ int bsreader()
 	memset(&init_data, 0, sizeof(init_data));
 	init_data.fd_iav = fd_iav;
 	init_data.max_stream_num = MAX_ENCODE_STREAM_NUM;
-	init_data.ring_buf_size[0] = 1024*1024*1;  // 8MB
-	init_data.ring_buf_size[1] = 1024*1024*1;  // 2MB
+	init_data.ring_buf_size[0] = 1024*1024*4;  // 8MB
+	init_data.ring_buf_size[1] = 1024*1024*2;  // 2MB
  /* :TODO:2014/9/16 13:51:38:Sean:  2*/
-#if 0
+#if 1
 	init_data.ring_buf_size[2] = 1024*1024*1;  // 1MB
 	init_data.ring_buf_size[3] = 1024*1024*1;  // 1MB
 #endif
@@ -240,7 +240,7 @@ int main(int argc, char** argv)
 	// Repeat the above with each <username>, <password> that you wish to allow
 	// access to the server.
 #endif
-/* :TODO:2014/9/15 16:18:27:Sean:  default is 300000 导致挂掉的元凶*/
+/* :TODO:2014/9/15 16:18:27:Sean:  default is 300000  */
       OutPacketBuffer::maxSize = 2000000;
 /* :TODO:End---  */
 	// Create the RTSP server:

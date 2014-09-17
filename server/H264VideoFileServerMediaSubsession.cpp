@@ -168,6 +168,7 @@ RTPSink* H264VideoFileServerMediaSubsession
 
 char const*
 H264VideoFileServerMediaSubsession::sdpLines() {
+    FUN_IN();
 	int encode_type = getEncType();
 	if (encode_type == -1) {
 		return NULL;
@@ -181,22 +182,31 @@ H264VideoFileServerMediaSubsession::sdpLines() {
 		unsigned estBitrate;
 		FramedSource* inputSource = createNewStreamSource(0, estBitrate);
 		if (inputSource == NULL) return NULL; // file not found
-
+		
+        PRT_DBG("line[%d]\n", __LINE__);
+        
 		struct in_addr dummyAddr;
 		dummyAddr.s_addr = 0;
 		Groupsock dummyGroupsock(envir(), dummyAddr, 0, 0);
 		unsigned char rtpPayloadType = 96 + trackNumber()-1; // if dynamic
 		RTPSink* dummyRTPSink
 			= createNewRTPSink(&dummyGroupsock, rtpPayloadType, inputSource);
+
+        PRT_DBG("line[%d]\n", __LINE__);
+
 		setSDPLinesFromRTPSink(dummyRTPSink, inputSource, estBitrate);
 		Medium::close(dummyRTPSink);
 		closeStreamSource(inputSource);
 	}
+    FUN_OUT();
+
 	return fSDPLines;
 }
 
 int H264VideoFileServerMediaSubsession::getEncType()
 {
+    FUN_IN();
+
 	int stream_id = 0;
 	if (strncmp(fFileName, "live_stream1", 12) == 0) {
 		stream_id = 0;
@@ -212,11 +222,14 @@ int H264VideoFileServerMediaSubsession::getEncType()
 
 	iav_encode_format_ex_t format;
 	format.id = 1<<stream_id;
-
+    
+    PRT_DBG("line[%d]fFileName[%s]stream_id[%d]\n", __LINE__, fFileName, stream_id);
+    
 	if (ioctl(fIAVfd,IAV_IOC_GET_ENCODE_FORMAT_EX, &format ) <0 ) {
 		perror("IAV_IOC_GET_ENCODE_FORMAT_EX");
 		return -1;
 	}
+    FUN_OUT();
 	return format.encode_type;
 }
 

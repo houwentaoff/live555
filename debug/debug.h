@@ -30,8 +30,8 @@
 
 
 #if INOUT_DEBUG
-#define FUN_IN(fmt, args...)              printf("===> %s():"fmt"\n", __func__, ##args)/*  */
-#define FUN_OUT(fmt, args...)             printf("<=== %s():"fmt"\n", __func__, ##args) /*  */
+#define FUN_IN(fmt, args...)              printf("==> %s %s():"fmt"\n", __FILE__, __func__, ##args)/*  */
+#define FUN_OUT(fmt, args...)             printf("<== %s %s():"fmt"\n", __FILE__, __func__, ##args) /*  */
 #else
 #define FUN_IN(fmt, args...)
 #define FUN_OUT(fmt, args...)
@@ -47,7 +47,7 @@
 #define PRT_ERR(fmt, args...)                                                               \
 do                                                                                          \
 {                                                                                           \
-    printf("\033[5;41;32m [ERROR] ---> %s ():line[%d]:\033[0m\n", __func__, __LINE__);      \
+    printf("\033[5;41;32m [ERROR] %s ---> %s ():line[%d]:\033[0m\n", __FILE__, __func__, __LINE__);      \
     printf(" "fmt, ##args);                                                                 \
 }while(0)    /* */
 #else

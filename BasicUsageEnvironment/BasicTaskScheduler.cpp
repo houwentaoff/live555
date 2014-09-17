@@ -61,8 +61,8 @@ void BasicTaskScheduler::SingleStep(unsigned maxDelayTime) {
   fd_set writeSet = fWriteSet; // ditto
   fd_set exceptionSet = fExceptionSet; // ditto
  /* :TODO:2014/9/12 13:45:31:Sean:  added*/
-	printf("env 0x%x, fNoDelayFunc 0x%x\n", this, fNoDelayFunc);
-#if 1
+//	printf("env 0x%x, fNoDelayFunc 0x%x\n", this, fNoDelayFunc);
+#if 0
 	if (fNoDelayFunc != NULL) {
 		(*fNoDelayFunc)(fNoDelayClientData);
 		return;

@@ -208,6 +208,8 @@ char* ServerMediaSession::generateSDPDescription() {
   AddressString ipAddressStr(ourIPAddress(envir()));
   unsigned ipAddressStrSize = strlen(ipAddressStr.val());
 
+  FUN_IN();
+  
   // For a SSM sessions, we need a "a=source-filter: incl ..." line also:
   char* sourceFilterLine;
   if (fIsSSM) {
@@ -221,7 +223,9 @@ char* ServerMediaSession::generateSDPDescription() {
   } else {
     sourceFilterLine = strDup("");
   }
-
+  //sleep(1);//added
+  PRT_DBG("line [%d]\n", __LINE__);
+  
   char* rangeLine = NULL; // for now
   char* sdp = NULL; // for now
 
@@ -241,6 +245,9 @@ char* ServerMediaSession::generateSDPDescription() {
 
     // Unless subsessions have differing durations, we also have a "a=range:" line:
     float dur = duration();
+
+    PRT_DBG("line [%d]\n", __LINE__);
+
     if (dur == 0.0) {
       rangeLine = strDup("a=range:npt=0-\r\n");
     } else if (dur > 0.0) {
@@ -301,13 +308,21 @@ char* ServerMediaSession::generateSDPDescription() {
       mediaSDP += mediaSDPLength;
       sdpLength -= mediaSDPLength;
       if (sdpLength <= 1) break; // the SDP has somehow become too long
-
+      
+      PRT_DBG("line [%d]\n", __LINE__);
+      
       char const* sdpLines = subsession->sdpLines();
       if (sdpLines != NULL) snprintf(mediaSDP, sdpLength, "%s", sdpLines);
     }
+
+    PRT_DBG("line [%d]\n", __LINE__);
+
   } while (0);
 
   delete[] rangeLine; delete[] sourceFilterLine;
+  
+  FUN_OUT();
+  
   return sdp;
 }
 

@@ -65,7 +65,7 @@ void RTSPServer::addServerMediaSession(ServerMediaSession* serverMediaSession) {
 }
 
 ServerMediaSession* RTSPServer::lookupServerMediaSession(char const* streamName) {
-  printf("Sean ===>%s():streamName[%s]\n", __func__, streamName);
+  FUN_IN("streamName[%s]\n", streamName);
   return (ServerMediaSession*)(fServerMediaSessions->Lookup(streamName));
 }
 
@@ -471,9 +471,11 @@ RTSPServer::RTSPClientConnection::ParamsForREGISTER::~ParamsForREGISTER() {
 // Handler routines for specific RTSP commands:
 
 void RTSPServer::RTSPClientConnection::handleCmd_OPTIONS() {
+    FUN_IN();
   snprintf((char*)fResponseBuffer, sizeof fResponseBuffer,
 	   "RTSP/1.0 200 OK\r\nCSeq: %s\r\n%sPublic: %s\r\n\r\n",
 	   fCurrentCSeq, dateHeader(), fOurServer.allowedCommandNames());
+    FUN_OUT();
 }
 
 void RTSPServer::RTSPClientConnection
@@ -496,6 +498,9 @@ void RTSPServer::RTSPClientConnection
 ::handleCmd_DESCRIBE(char const* urlPreSuffix, char const* urlSuffix, char const* fullRequestStr) {
   char* sdpDescription = NULL;
   char* rtspURL = NULL;
+  
+  FUN_IN();
+  
   do {
     char urlTotalSuffix[RTSP_PARAM_STRING_MAX];
     if (strlen(urlPreSuffix) + strlen(urlSuffix) + 2 > sizeof urlTotalSuffix) {
@@ -552,6 +557,9 @@ void RTSPServer::RTSPClientConnection
   
   delete[] sdpDescription;
   delete[] rtspURL;
+  
+  FUN_OUT();
+
 }
 
 static void lookForHeader(char const* headerName, char const* source, unsigned sourceLen, char* resultStr, unsigned resultMaxSize) {

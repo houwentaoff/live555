@@ -25,6 +25,10 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #include "Boolean.hh"
 #endif
 
+/* :TODO:2014/9/17 19:23:06:Sean: added */
+#include "../../debug/debug.h"
+/* :TODO:End---  */
+
 #ifndef _MEDIA_HH
 #include <Media.hh> // includes some definitions perhaps needed for Borland compilers?
 #endif

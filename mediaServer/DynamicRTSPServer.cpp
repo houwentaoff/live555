@@ -47,7 +47,7 @@ static ServerMediaSession* createNewSMS(UsageEnvironment& env,
 ServerMediaSession*
 DynamicRTSPServer::lookupServerMediaSession(char const* streamName) {
     /*Sean Hou:  */
-    printf("Sean ==>%s():streamName[%s]\n", __func__, streamName);
+    printf("Sean ==>%s:%s():streamName[%s]\n", __FILE__, __func__, streamName);
   // First, check whether the specified "streamName" exists as a local file:
   FILE* fid = fopen(streamName, "rb");
   Boolean fileExists = fid != NULL;

@@ -260,7 +260,7 @@ Boolean Groupsock::output(UsageEnvironment& env, u_int8_t ttlToSend,
     }
     if (!writeSuccess) break;
 /* :TODO:2014/9/15 16:53:24:Sean:  optm*/
-#if 0  //optm 
+#if 1  //optm 
     statsOutgoing.countPacket(bufferSize);
     statsGroupOutgoing.countPacket(bufferSize);
 #endif

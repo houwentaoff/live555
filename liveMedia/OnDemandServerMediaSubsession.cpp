@@ -56,6 +56,9 @@ OnDemandServerMediaSubsession::~OnDemandServerMediaSubsession() {
 
 char const*
 OnDemandServerMediaSubsession::sdpLines() {
+
+  FUN_IN();
+  
   if (fSDPLines == NULL) {
     // We need to construct a set of SDP lines that describe this
     // subsession (as a unicast stream).  To do so, we first create
@@ -77,6 +80,8 @@ OnDemandServerMediaSubsession::sdpLines() {
     Medium::close(dummyRTPSink);
     closeStreamSource(inputSource);
   }
+  
+  FUN_OUT();
 
   return fSDPLines;
 }
@@ -97,11 +102,11 @@ void OnDemandServerMediaSubsession
 		      void*& streamToken) {
   if (destinationAddress == 0) {
       destinationAddress = clientAddress;
-/* :TODO:2014/9/12 13:17:28:Sean:  */
+/* :TODO:2014/9/12 13:17:28:Sean: added*/
      printf("client requests unicast 0x%x\n", clientAddress);
 /* :TODO:End---  */
   }
-/* :TODO:2014/9/12 13:17:28:Sean: no multicastAddress*/
+/* :TODO:2014/9/12 13:17:28:Sean: added no multicastAddress*/
   if (isMulticast) {
 //     destinationAddress = multicastAddress;
      printf("client requests mulicast, port %d\n", fInitialPortNum);	
@@ -397,6 +402,9 @@ void OnDemandServerMediaSubsession::closeStreamSource(FramedSource *inputSource)
 
 void OnDemandServerMediaSubsession
 ::setSDPLinesFromRTPSink(RTPSink* rtpSink, FramedSource* inputSource, unsigned estBitrate) {
+
+  FUN_IN();
+
   if (rtpSink == NULL) return;
 
   char const* mediaType = rtpSink->sdpMediaType();
@@ -442,6 +450,9 @@ void OnDemandServerMediaSubsession
 
   fSDPLines = strDup(sdpLines);
   delete[] sdpLines;
+
+  FUN_OUT();
+
 }
 
 
@@ -539,7 +550,7 @@ void StreamState
   if (fRTCPInstance == NULL && fRTPSink != NULL) {
     // Create (and start) a 'RTCP instance' for this RTP sink:
  /* :TODO:2014/9/12 15:05:32:Sean:  */
-#if 0
+#if 1
     fRTCPInstance
       = RTCPInstance::createNew(fRTPSink->envir(), fRTCPgs,
 				fTotalBW, (unsigned char*)fMaster.fCNAME,
@@ -595,8 +606,10 @@ void StreamState
       fUDPSink->startPlaying(*fMediaSource, afterPlayingStreamState, this);
       fAreCurrentlyPlaying = True;
     }
- /* :TODO:2014/9/12 14:22:37:Sean:  */
+ /* :TODO:2014/9/12 14:22:37:Sean: added*/
+ #if 0
     createWorkingThread();
+ #endif
  /* :TODO:End---  */
   }
 }
@@ -641,8 +654,11 @@ void StreamState::endPlaying(Destinations* dests) {
 
 void StreamState::reclaim() {
   // Delete allocated media objects
- /* :TODO:2014/9/12 15:50:27:Sean:  */
+ /* :TODO:2014/9/12 15:50:27:Sean: added 有线程才给予取消，否则就挂了 记得 和调度方法一起打开或者取消*/
+    printf("===>%s %s()\n", __FILE__, __func__);
+#if 0
  	cancelWorkingThread();   
+#endif
  /* :TODO:End---  */
   Medium::close(fRTCPInstance) /* will send a RTCP BYE */; fRTCPInstance = NULL;
   Medium::close(fRTPSink); fRTPSink = NULL;
@@ -654,4 +670,6 @@ void StreamState::reclaim() {
   delete fRTPgs;
   if (fRTCPgs != fRTPgs) delete fRTCPgs;
   fRTPgs = NULL; fRTCPgs = NULL;
+
+  printf("<===%s %s()\n", __FILE__, __func__);
 }
