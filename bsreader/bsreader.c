@@ -366,15 +366,16 @@ static int init_iav(void)
 		perror("IAV_IOC_GET_STATE_INFO");
 		return -1;
 	}
-
+#if 1
 	//check iav state, must start bsreader before start encoding to ensure no frame missing
 	if ((info.state != IAV_STATE_IDLE) &&
 		(info.state != IAV_STATE_INIT) &&
-		(info.state != IAV_STATE_PREVIEW)) {
-		printf("iav state must be in either idle or preview before open bsreader\n");
+		(info.state != IAV_STATE_PREVIEW)&&
+		(info.state != IAV_STATE_ENCODING)) {
+		printf("Sean iav state must be in either idle or preview before open bsreader\n");
 		return -1;
 	}
-
+#endif
 	//check iav mmap
 	if (ioctl(G_iav_fd, IAV_IOC_GET_MMAP_INFO, &mmap) < 0) {
 		return -1;

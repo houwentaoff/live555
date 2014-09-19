@@ -8,6 +8,7 @@
 #include "H264StreamParser.hh"
 #include "MyH264VideoStreamFramer.hh"
 #include "assert.h"
+#include "../debug/debug.h"
 
 #define USR_DEFINED_ERROR			2
 
@@ -114,10 +115,13 @@ H264BitStreamParser::H264BitStreamParser(int streamID)
 
 H264BitStreamParser::~H264BitStreamParser()
 {
+    FUN_IN("fsps[0x%x]\n", fsps);
 	if (fsps)
 		delete[] fsps;
 	if (fpps)
 		delete[] fpps;
+    FUN_OUT();
+
 }
 
 void H264BitStreamParser:: registerReadInterest(unsigned char* to,unsigned maxSize)
@@ -129,11 +133,13 @@ void H264BitStreamParser:: registerReadInterest(unsigned char* to,unsigned maxSi
 int H264BitStreamParser::parse()
 {
 	bsreader_frame_info_t frame_info;
+    static  Boolean getsps = false;
 //	static struct timeval timeNow, timeNow2;
+    FUN_IN("fTo[0x%x]fNaluCurrIndex[%d]fNaluCount[%d]\n", fTo, fNaluCurrIndex, fNaluCount);
 
 	while (fNaluCurrIndex >= fNaluCount) { 	//No NAL unit currently in the buffer.	Read a new one.
 //		gettimeofday(&timeNow, NULL);
-//		printf("get one frame...\n"); //jay
+		printf("parse get one frame...\n"); //Sean: key :cause get sps failed. 
 //		printf("diff %d\n", (timeNow2.tv_sec - timeNow.tv_sec)*1000000 + timeNow2.tv_usec - timeNow.tv_usec);
 
 		if (bsreader_get_one_frame(fStreamID, &frame_info) < 0) {
@@ -155,85 +161,124 @@ int H264BitStreamParser::parse()
 		fNaluCurrIndex = 0;
 	}
 
-	// filter out the SEI nalu
+	// filter out the SEI nalu //Sean: no use ?
 	while (fNalus[fNaluCurrIndex].nalu_type == NALU_TYPE_SEI) {
 		assert(fNaluCurrIndex <= fNaluCount);
 		fNaluCurrIndex++;
 	}
 	assert((fNaluSize = fNalus[fNaluCurrIndex].size) > 0);
-	fNaluType = fNalus[fNaluCurrIndex].nalu_type;
+    fNaluType = fNalus[fNaluCurrIndex].nalu_type;
 
-	//printf("[%d] nalu_type %d, size %d, PTS %d\n", fStreamID,
-	//	fNalus[fNaluCurrIndex].nalu_type, fNalus[fNaluCurrIndex].size, fPTS);		//jay
-	if (fTo != NULL) {
-		memcpy(fTo, fNalus[fNaluCurrIndex].addr, fNalus[fNaluCurrIndex].size);
-	} else {
-		if (fNaluType == NALU_TYPE_SPS) {
-			unsigned char* sps = fNalus[fNaluCurrIndex].addr;
-			if (fsps != NULL)
-				delete[] fsps;
-			fsps = new char[fNaluSize/3 *4 + 4 + 4]; // 1 extra byte for '\0'
-			base64encode(fsps, sps, fNaluSize);
-			memcpy(profileLevelID, sps + 1, 3);
-		}
-		if (fNaluType == NALU_TYPE_PPS) {
-			unsigned char* pps = fNalus[fNaluCurrIndex].addr;
-			if (fpps != NULL)
-				delete[] fpps;
-			fpps = new char[fNaluSize/3 *4 + 4 + 4]; // 1 extra byte for '\0'
-			base64encode(fpps, pps, fNaluSize);
-		}
-	}
-	fNaluCurrIndex++;
-	return 0;
+    //printf("[%d] nalu_type %d, size %d, PTS %d\n", fStreamID,
+    //	fNalus[fNaluCurrIndex].nalu_type, fNalus[fNaluCurrIndex].size, fPTS);		//jay
+    if (fTo != NULL ) {//Sean ?
+        PRT_ERR("fTo is not NULL\n");
+        memcpy(fTo, fNalus[fNaluCurrIndex].addr, fNalus[fNaluCurrIndex].size);
+        if (!fsps || !fpps)
+        {
+            if (fNaluType == NALU_TYPE_SPS) {
+                unsigned char* sps = fNalus[fNaluCurrIndex].addr;
+                if (fsps != NULL)
+                    delete[] fsps;
+                fsps = new char[fNaluSize/3 *4 + 4 + 4]; // 1 extra byte for '\0'
+                base64encode(fsps, sps, fNaluSize);
+                memcpy(profileLevelID, sps + 1, 3);
+                PRT_DBG("generate sps[%s]\n", fsps);
+            }
+            if (fNaluType == NALU_TYPE_PPS) {
+                unsigned char* pps = fNalus[fNaluCurrIndex].addr;
+                if (fpps != NULL)
+                    delete[] fpps;
+                fpps = new char[fNaluSize/3 *4 + 4 + 4]; // 1 extra byte for '\0'
+                base64encode(fpps, pps, fNaluSize);
+            }          
+            PRT_DBG("fsps[%s]fpps[%s]\n", fsps, fpps);
+        }
+        else
+        {
+            PRT_DBG("fsps[%s]fpps[%s]\n", fsps, fpps);
+        }
+    }
+#if 1 
+    else {
+        if (!fsps || !fpps)
+        {
+            if (fNaluType == NALU_TYPE_SPS) {
+                unsigned char* sps = fNalus[fNaluCurrIndex].addr;
+                if (fsps != NULL)
+                    delete[] fsps;
+                fsps = new char[fNaluSize/3 *4 + 4 + 4]; // 1 extra byte for '\0'
+                base64encode(fsps, sps, fNaluSize);
+                memcpy(profileLevelID, sps + 1, 3);
+                PRT_DBG("generate sps[%s]\n", fsps);
+            }
+            if (fNaluType == NALU_TYPE_PPS) {
+                unsigned char* pps = fNalus[fNaluCurrIndex].addr;
+                if (fpps != NULL)
+                    delete[] fpps;
+                fpps = new char[fNaluSize/3 *4 + 4 + 4]; // 1 extra byte for '\0'
+                base64encode(fpps, pps, fNaluSize);
+            }
+        }
+    }
+#endif
+    fNaluCurrIndex++;
+
+    FUN_OUT();
+
+    return 0;
 }
 
 char* H264BitStreamParser::getParsersps()
 {
-	return fsps;
+    PRT_DBG("fsps[%s]\n", fsps);
+
+    return fsps;
 }
 
 char* H264BitStreamParser::getParserpps()
 {
-	return fpps;
+    PRT_DBG("fpps[%s]\n", fpps);
+
+    return fpps;
 }
 
 char* H264BitStreamParser::getPreID()
 {
-	return profileLevelID;
+    return profileLevelID;
 }
 
 u_int32_t H264BitStreamParser::getFrameNum()
 {
-	return fFrameNum;
+    return fFrameNum;
 }
 
 //H264FileStreamParser
-H264FileStreamParser::H264FileStreamParser(FramedSource * usingSource, FramedSource * inputSource)
+    H264FileStreamParser::H264FileStreamParser(FramedSource * usingSource, FramedSource * inputSource)
 :StreamParser(inputSource, FramedSource::handleClosure, usingSource, &MyH264VideoStreamFramer::continueReadProcessing, usingSource),
-fUsingSource(usingSource),fsps(NULL),fpps(NULL), profileLevelID(0), fCurrentParseState(PARSING_START_SEQUENCE)
+    fUsingSource(usingSource),fsps(NULL),fpps(NULL), profileLevelID(0), fCurrentParseState(PARSING_START_SEQUENCE)
 {
-	
+
 }
 
 H264FileStreamParser::~H264FileStreamParser()
 {
-	delete[] fsps;
-	delete[] fpps;
+    delete[] fsps;
+    delete[] fpps;
 }
 
 //reset saved the parser state
 void H264FileStreamParser::restoreSavedParserState()
 {
-	StreamParser::restoreSavedParserState();
-	fTo = fSavedTo;
-	fNumTruncatedBytes = fSavedNumTruncatedBytes;
+    StreamParser::restoreSavedParserState();
+    fTo = fSavedTo;
+    fNumTruncatedBytes = fSavedNumTruncatedBytes;
 }
 
 void H264FileStreamParser::setParseState(MyH264ParseState parseState)
 {
-	fSavedTo = fTo;
-	fSavedNumTruncatedBytes = fNumTruncatedBytes;
+    fSavedTo = fTo;
+    fSavedNumTruncatedBytes = fNumTruncatedBytes;
 	fCurrentParseState = parseState;
 	saveParserState();
 }

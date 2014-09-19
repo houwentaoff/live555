@@ -37,6 +37,7 @@ MyH264VideoRTPSink
 	: VideoRTPSink(env, RTPgs, rtpPayloadFormat, 90000, "H264"),
 	  fOurFragmenter(NULL),fFmtpSDPLine(NULL) {
 	// Set up the "a=fmtp:" SDP line for this stream:
+ /* :TODO:2014/9/18 14:36:11:Sean: amba s opened by Sean set sdp sps in init */
 #if 0
   char const* fmtpFmt =
 		"a=fmtp:%d packetization-mode=1"
@@ -54,6 +55,7 @@ MyH264VideoRTPSink
   fFmtpSDPLine = strDup(fmtp);
   delete[] fmtp;
 #endif
+ /* :TODO:End---  */
 }
 
 MyH264VideoRTPSink::~MyH264VideoRTPSink()
@@ -132,14 +134,20 @@ Boolean MyH264VideoRTPSink
 }
 //get sdp
 char const* MyH264VideoRTPSink::auxSDPLine() {
+    FUN_IN();
 	if (fFmtpSDPLine == NULL) {
 		MyH264VideoStreamFramer* framerSource = (MyH264VideoStreamFramer*)(fOurFragmenter->inputSource());
-		char profile_level_id[3];
+		char profile_level_id[3];//Sean KEY
 		while (framerSource->getSPS()==NULL || framerSource->getPPS() == NULL) {
+          
+            PRT_DBG("sps or pps is NULL framerSource->getSPS()[%s]\n", framerSource->getSPS());
+
 			framerSource->fBitstreamParser->parse();
 		}
 		memcpy(profile_level_id, framerSource->getProfileLevelID(),3);
-
+        
+        PRT_DBG();
+        
 		char* sprop_parameter_sets_str = new char[512];
 		sprintf(sprop_parameter_sets_str, "%s,%s", framerSource->getSPS(),framerSource->getPPS());
 
@@ -163,6 +171,7 @@ char const* MyH264VideoRTPSink::auxSDPLine() {
 		delete[] fmtp;
 		delete[] sprop_parameter_sets_str;
 	}
+    FUN_OUT();
 	return fFmtpSDPLine;
 }
 

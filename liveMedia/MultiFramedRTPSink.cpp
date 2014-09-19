@@ -178,7 +178,7 @@ void MultiFramedRTPSink::stopPlaying() {
   MediaSink::stopPlaying();
 }
 
-void MultiFramedRTPSink::buildAndSendPacket(Boolean isFirstPacket) {
+void MultiFramedRTPSink::buildAndSendPacket(Boolean isFirstPacket) {//Sean To prepare the head of rtp.
  /* :TODO:2014/9/15 17:07:00:Sean:  */
 #if 1 //org
   fIsFirstPacket = isFirstPacket;
@@ -207,7 +207,7 @@ void MultiFramedRTPSink::buildAndSendPacket(Boolean isFirstPacket) {
   fTotalFrameSpecificHeaderSizes = 0;
   fNoFramesLeft = False;
   fNumFramesUsedSoFar = 0;
-  packFrame();
+  packFrame();//向包中打入数据
 }
 
 void MultiFramedRTPSink::packFrame() {
@@ -221,7 +221,7 @@ void MultiFramedRTPSink::packFrame() {
     unsigned durationInMicroseconds = fOutBuf->overflowDurationInMicroseconds();
     fOutBuf->useOverflowData();
 
-    afterGettingFrame1(frameSize, 0, presentationTime, durationInMicroseconds);
+    afterGettingFrame1(frameSize, 0, presentationTime, durationInMicroseconds);//向包中打入数据
   } else {
     // Normal case: we need to read a new frame from the source
     if (fSource == NULL) return;
@@ -232,7 +232,7 @@ void MultiFramedRTPSink::packFrame() {
     fTotalFrameSpecificHeaderSizes += fCurFrameSpecificHeaderSize;
 
     fSource->getNextFrame(fOutBuf->curPtr(), fOutBuf->totalBytesAvailable(),
-			  afterGettingFrame, this, ourHandleClosure, this);
+			  afterGettingFrame, this, ourHandleClosure, this);//获取帧数据
   }
     printf("<==%s %s():\n", __FILE__, __func__);
 

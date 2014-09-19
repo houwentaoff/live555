@@ -7,6 +7,8 @@
 #include "MyH264VideoStreamFramer.hh"
 #include "H264StreamParser.hh"
 #include "assert.h"
+//Sean added
+#include "../debug/debug.h"
 
 MyH264VideoStreamFramer*
 MyH264VideoStreamFramer::createNew(UsageEnvironment & env, FramedSource * inputSource)
@@ -76,6 +78,7 @@ Boolean MyH264VideoStreamFramer::currentNALUnitEndsAccessUnit()
 
 char* MyH264VideoStreamFramer:: getSPS()
 {
+    FUN_IN("fParser[0X%X]\n", fParser);
 	if (fParser != NULL)
 		return fParser->getParsersps();
 	else
@@ -84,6 +87,8 @@ char* MyH264VideoStreamFramer:: getSPS()
 
 char* MyH264VideoStreamFramer::getPPS()
 {
+    FUN_IN("fParser[0X%X]\n", fParser);
+
 	if (fParser != NULL)
 		return fParser->getParserpps();
 	else

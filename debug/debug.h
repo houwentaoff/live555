@@ -38,7 +38,7 @@
 #endif
 
 #if LIVE555_DEBUG
-#define PRT_DBG(fmt, args...)             printf("%s():"fmt"\n", __func__, ##args)/*  */
+#define PRT_DBG(fmt, args...)             printf("%s():line[%d]"fmt"\n", __func__, __LINE__, ##args)/*  */
 #else
 #define PRT_DBG(fmt, args...)
 #endif

@@ -403,17 +403,32 @@ void OnDemandServerMediaSubsession::closeStreamSource(FramedSource *inputSource)
 void OnDemandServerMediaSubsession
 ::setSDPLinesFromRTPSink(RTPSink* rtpSink, FramedSource* inputSource, unsigned estBitrate) {
 
-  FUN_IN();
+  FUN_IN("rtpSink[0X%X]\n", rtpSink);
 
   if (rtpSink == NULL) return;
 
   char const* mediaType = rtpSink->sdpMediaType();
   unsigned char rtpPayloadType = rtpSink->rtpPayloadType();
   AddressString ipAddressStr(fServerAddressForSDP);
+
+//  PRT_DBG();
+  
   char* rtpmapLine = rtpSink->rtpmapLine();
+
+//  PRT_DBG();
+
   char const* rtcpmuxLine = fMultiplexRTCPWithRTP ? "a=rtcp-mux\r\n" : "";
+
+//  PRT_DBG();
+
   char const* rangeLine = rangeSDPLine();
+
+  PRT_DBG();
+
   char const* auxSDPLine = getAuxSDPLine(rtpSink, inputSource);
+
+  PRT_DBG();
+
   if (auxSDPLine == NULL) auxSDPLine = "";
 
   char const* const sdpFmt =
