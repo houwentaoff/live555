@@ -65,6 +65,11 @@ static fifo_t* myFIFO[MAX_BS_READER_SOURCE_STREAM];
  *				private functions
  *
  *****************************************************************************/
+/**
+ * @brief cavlc ?
+ *
+ * @return 
+ */
  static int init_cavlc(void)
 {
 	if (cavlc_encode_init(G_iav_fd) < 0) {
@@ -288,14 +293,16 @@ static void * bsreader_dispatcher_thread_func(void * arg)
 {
 	bsreader_frame_info_t frame_info;
 	int retv = 0;
-	//printf("->enter bsreader dispatcher main loop\n");
+
+    PRT_DBG("->enter bsreader dispatcher main loop\n");
 
 	while (!G_force_main_thread_quit) {
 		if ((retv = fetch_one_frame(&frame_info)) < 0) {
 			if ((retv == -1) && (errno != EAGAIN)) {
 				perror("fetch one frame failed");
 			}
-			usleep(10000);
+//			usleep(10000);//40ms 才合适？
+			usleep(33 * 1000);//30ms 才合适？ 30 fps,
 			continue;
 		}
 
@@ -305,13 +312,13 @@ static void * bsreader_dispatcher_thread_func(void * arg)
 			continue;
 		}	
 	}
-//	printf("->quit bsreader dispatcher main loop\n");
+	PRT_DBG("->quit bsreader dispatcher main loop\n");
 
 	return 0;
 }
 
 
-/* create a main thread reading data and four threads for four buffer */
+/* create a main thread reading data and four threads for four buffer Sean:but only one*/
 static int create_working_thread(void)
 {
 	pthread_t tid;
@@ -450,6 +457,7 @@ int bsreader_open(void)
 	max_entry_num = G_bsreader_init_data.max_buffered_frame_num;
     PRT_DBG("MAX item num[%d]\n", max_entry_num);
 
+    /*buf , head , packge .'3' kind of ringbuf*/
 	myFIFO[0] = fifo_create(G_bsreader_init_data.ring_buf_size[0], sizeof(bs_info_t), max_entry_num);
 	myFIFO[1] = fifo_create(G_bsreader_init_data.ring_buf_size[1], sizeof(bs_info_t), max_entry_num);
 	myFIFO[2] = fifo_create(G_bsreader_init_data.ring_buf_size[2], sizeof(bs_info_t), max_entry_num);
@@ -501,7 +509,7 @@ int bsreader_close(void)
 	}
 
 	if (cancel_working_thread() < 0) {
-		perror("pthread_cancel bsreader main");
+		perror("err:pthread_cancel bsreader main");
 		return -1;
 	} else {
 		DEBUG_PRINT("main working thread canceled \n");
@@ -509,8 +517,8 @@ int bsreader_close(void)
 
 	fifo_close(myFIFO[0]);
 	fifo_close(myFIFO[1]);
-	//fifo_close(myFIFO[2]);
-	//fifo_close(myFIFO[3]);
+	fifo_close(myFIFO[2]);
+	fifo_close(myFIFO[3]);
 
 	if (G_bsreader_init_data.cavlc_possible) {
 		destroy_cavlc();

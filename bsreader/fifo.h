@@ -33,7 +33,7 @@ typedef struct fifo_s
 	int				first_entry_index;
 	int				last_entry_index;
 	// header related
-	u8				*header_entries;
+	u8				*header_entries;//Sean ?
 	u32				header_size;
 	// fifo core
 	pthread_mutex_t	mutex;
@@ -45,7 +45,7 @@ typedef struct fifo_s
 	int				entry_index_for_next_read;
 	int				entry_index_for_next_write;
 	int				entry_index_being_used;
-	u32				used_entry_num;
+	u32				used_entry_num;//Sean ?
 	// others
 	u32				non_block_flag;
 } fifo_t;
