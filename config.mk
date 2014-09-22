@@ -45,7 +45,7 @@ C_COMPILER				=	$(CC)
 C_FLAGS				=	$(COMPILE_OPTS)
 CPP						=	cpp
 CPLUSPLUS_COMPILER	=	$(CXX)
-CPLUSPLUS_FLAGS		=	$(COMPILE_OPTS) $(APP_CFLAG) -DBSD=1 -g -O2
+CPLUSPLUS_FLAGS		=	$(COMPILE_OPTS) $(APP_CFLAG) -DBSD=1 -g -O2 -fpermissive
 OBJ						=	o
 LINK					=	$(CXX) -o 
 LINK_OPTS				=	-L. -g -O2

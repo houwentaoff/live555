@@ -26,10 +26,11 @@ OnDemandServerMediaSubsession
 ::OnDemandServerMediaSubsession(UsageEnvironment& env,
 				Boolean reuseFirstSource,
 				portNumBits initialPortNum,
+				netAddressBits multicastDest,
 				Boolean multiplexRTCPWithRTP)
   : ServerMediaSubsession(env),
     fSDPLines(NULL), fReuseFirstSource(reuseFirstSource),
-    fMultiplexRTCPWithRTP(multiplexRTCPWithRTP), fLastStreamToken(NULL) {
+    fMultiplexRTCPWithRTP(multiplexRTCPWithRTP), fLastStreamToken(NULL), multicastAddress(multicastDest){
   fDestinationsHashTable = HashTable::create(ONE_WORD_HASH_KEYS);
   if (fMultiplexRTCPWithRTP) {
     fInitialPortNum = initialPortNum;
@@ -102,8 +103,8 @@ void OnDemandServerMediaSubsession
 /* :TODO:End---  */
   }
 /* :TODO:2014/9/12 13:17:28:Sean: no multicastAddress*/
-  if (isMulticast) {
-//     destinationAddress = multicastAddress;
+  else if (isMulticast) {
+     destinationAddress = multicastAddress;
      printf("client requests mulicast, port %d\n", fInitialPortNum);	
   }
 /* :TODO:End---  */
@@ -206,7 +207,15 @@ void OnDemandServerMediaSubsession
   // Record these destinations as being for this client session id:
   Destinations* destinations;
   if (tcpSocketNum < 0) { // UDP
-    destinations = new Destinations(destinationAddr, clientRTPPort, clientRTCPPort);
+  /*Sean modified*/
+		if (isMulticast) {
+			//multicast server will always send RTP/RTCP packet to the same port as its local port
+			Port MultiClientRTPPort(serverRTPPort);	
+			Port MultiClientRTCPPort(serverRTCPPort);
+			destinations = new Destinations(destinationAddr, MultiClientRTPPort, MultiClientRTCPPort);
+		} else {
+			destinations = new Destinations(destinationAddr, clientRTPPort, clientRTCPPort);
+		}
   } else { // TCP
     destinations = new Destinations(tcpSocketNum, rtpChannelId, rtcpChannelId);
   }
@@ -227,6 +236,20 @@ void OnDemandServerMediaSubsession::startStream(unsigned clientSessionId,
 /* :TODO:End---  */
   Destinations* destinations
     = (Destinations*)(fDestinationsHashTable->Lookup((char const*)clientSessionId));
+ /* :TODO:2014/9/22 13:33:07:Sean:  */
+#if 1 //modified
+    if (streamState != NULL) {
+	if (streamState->rtpSink() != NULL) {
+		rtpSeqNum = streamState->rtpSink()->currentSeqNo();
+		if (streamState->isPlaying())
+			rtpTimestamp = streamState->rtpSink()->currentTimeStamp();
+		else
+			rtpTimestamp = streamState->rtpSink()->presetNextTimestamp();
+		}
+	}
+  	streamState->startPlaying(destinations,
+		  rtcpRRHandler, rtcpRRHandlerClientData, NULL, NULL);
+#else //orgin
   if (streamState != NULL) {
     streamState->startPlaying(destinations,
 			      rtcpRRHandler, rtcpRRHandlerClientData,
@@ -237,6 +260,8 @@ void OnDemandServerMediaSubsession::startStream(unsigned clientSessionId,
       rtpTimestamp = rtpSink->presetNextTimestamp();
     }
   }
+#endif
+   /* :TODO:End---  */
 }
 
 void OnDemandServerMediaSubsession::pauseStream(unsigned /*clientSessionId*/,

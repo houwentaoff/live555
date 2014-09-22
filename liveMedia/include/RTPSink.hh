@@ -54,6 +54,7 @@ public:
       // optional SDP line (e.g. a=fmtp:...)
 
   u_int16_t currentSeqNo() const { return fSeqNo; }
+  u_int32_t currentTimeStamp() const { return fCurrentTimestamp; }//Sean added
   u_int32_t presetNextTimestamp();
       // ensures that the next timestamp to be used will correspond to
       // the current 'wall clock' time.

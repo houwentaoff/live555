@@ -44,7 +44,7 @@ MultiFramedRTPSink::MultiFramedRTPSink(UsageEnvironment& env,
 	    rtpPayloadFormatName, numChannels),
     fOutBuf(NULL), fCurFragmentationOffset(0), fPreviousFrameEndedFragmentation(False),
     fOnSendErrorFunc(NULL), fOnSendErrorData(NULL) {
- /* :TODO:2014/9/15 17:06:31:Sean:  */
+ /* :TODO:2014/9/15 17:06:31:Sean:  added*/
     fIsFirstPacket = True;
  /* :TODO:End---  */
   setPacketSizes(1000, 1448);
@@ -411,7 +411,9 @@ void MultiFramedRTPSink::sendPacketIfNecessary() {
   if (fNoFramesLeft) {
     // We're done:
     onSourceClosure();
-  } else {
+  } 
+  #if 0		//optm
+  else {
     // We have more frames left to send.  Figure out when the next frame
     // is due to start playing, then make sure that we wait this long before
     // sending the next packet.
@@ -426,6 +428,7 @@ void MultiFramedRTPSink::sendPacketIfNecessary() {
     // Delay this amount of time:
     nextTask() = envir().taskScheduler().scheduleDelayedTask(uSecondsToGo, (TaskFunc*)sendNext, this);
   }
+  #endif
 }
 
 // The following is called after each delay between packet sends:

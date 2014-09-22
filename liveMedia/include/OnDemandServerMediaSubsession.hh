@@ -38,7 +38,8 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 class OnDemandServerMediaSubsession: public ServerMediaSubsession {
 protected: // we're a virtual base class
   OnDemandServerMediaSubsession(UsageEnvironment& env, Boolean reuseFirstSource,
-				portNumBits initialPortNum = 6970,
+				portNumBits initialPortNum = 50000/*modify by Sean*/,
+				netAddressBits  multicastDest = 0x64DD03E8,
 				Boolean multiplexRTCPWithRTP = False);
   virtual ~OnDemandServerMediaSubsession();
 
@@ -124,7 +125,9 @@ private:
   Boolean fMultiplexRTCPWithRTP;
   void* fLastStreamToken;
   char fCNAME[100]; // for RTCP
-  friend class StreamState;
+  friend class StreamState;  
+/*Sean added*/
+  netAddressBits  multicastAddress;
 };
 
 
@@ -168,6 +171,9 @@ public:
 		    TaskFunc* rtcpRRHandler, void* rtcpRRHandlerClientData,
 		    ServerRequestAlternativeByteHandler* serverRequestAlternativeByteHandler,
                     void* serverRequestAlternativeByteHandlerClientData);
+
+  Boolean isPlaying() { return fAreCurrentlyPlaying; }//Sean added
+
   void pause();
   void endPlaying(Destinations* destinations);
   void reclaim();

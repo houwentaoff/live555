@@ -60,6 +60,9 @@ void BasicTaskScheduler::SingleStep(unsigned maxDelayTime) {
   fd_set readSet = fReadSet; // make a copy for this select() call
   fd_set writeSet = fWriteSet; // ditto
   fd_set exceptionSet = fExceptionSet; // ditto
+  HandlerIterator iter(*fHandlers);
+  HandlerDescriptor* handler;
+  int selectResult = 0;
  /* :TODO:2014/9/12 13:45:31:Sean:  */
 //	printf("env %p, fNoDelayFunc %p\n", this, fNoDelayFunc);
 	if (fNoDelayFunc != NULL) {
@@ -85,8 +88,26 @@ void BasicTaskScheduler::SingleStep(unsigned maxDelayTime) {
     tv_timeToDelay.tv_sec = maxDelayTime/MILLION;
     tv_timeToDelay.tv_usec = maxDelayTime%MILLION;
   }
-
-  int selectResult = select(fMaxNumSockets, &readSet, &writeSet, &exceptionSet, &tv_timeToDelay);
+ /* :TODO:2014/9/22 12:20:51:Sean: added */
+  	if (fMaxNumSockets == 0 && tv_timeToDelay.tv_sec == 0 && tv_timeToDelay.tv_usec == 0)
+		goto delayTask;
+ /* :TODO:End---  */
+    selectResult = select(fMaxNumSockets, &readSet, &writeSet, &exceptionSet, &tv_timeToDelay);
+ /* :TODO:2014/9/22 12:12:27:Sean:  Added*/
+#if 1
+  if (selectResult < 0) {
+//		printf("select errno %d\n", errno);		//jay
+		// Unexpected error - treat this as fatal:
+		if (errno != EINTR && errno != EAGAIN) { //yzhu
+			abort();
+		} else {
+			goto delayTask;
+		}
+  }
+#endif
+ /* :TODO:End---  */
+ /* :TODO:2014/9/22 12:12:56:Sean: orgin */
+#if 0
   if (selectResult < 0) {
 #if defined(__WIN32__) || defined(_WIN32)
     int err = WSAGetLastError();
@@ -123,10 +144,10 @@ void BasicTaskScheduler::SingleStep(unsigned maxDelayTime) {
 	internalError();
       }
   }
-
+#endif
+ /* :TODO:End---  */
   // Call the handler function for one readable socket:
-  HandlerIterator iter(*fHandlers);
-  HandlerDescriptor* handler;
+
   // To ensure forward progress through the handlers, begin past the last
   // socket number that we handled:
   if (fLastHandledSocketNum >= 0) {
@@ -207,6 +228,7 @@ void BasicTaskScheduler::SingleStep(unsigned maxDelayTime) {
   }
 
   // Also handle any delayed event that may have come due.
+delayTask:
   fDelayQueue.handleAlarm();
 }
 
