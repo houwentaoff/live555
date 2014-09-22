@@ -2,14 +2,14 @@
 #
 # app/ipcam/rtsp/rules.mk
 #
-# 2010/02/03 - [Jian Tang] created file
+# 2014/09/23 - [Sean Hou] created file
 #
-# Copyright (C) 2010, Ambarella, Inc.
+# Copyright (C) 2014, GOKE, Inc.
 #
 # All rights reserved. No Part of this file may be reproduced, stored
 # in a retrieval system, or transmitted, in any form, or by any means,
 # electronic, mechanical, photocopying, recording, or otherwise,
-# without the prior consent of Ambarella, Inc.
+# without the prior consent of GOKE, Inc.
 #
 ###############################################
 

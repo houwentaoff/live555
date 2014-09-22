@@ -1,0 +1,57 @@
+AR                      =   /home/work/work_ext/ipc/gk7101/customer/juanvision/crosstool/arm-2011.09/bin/arm-none-linux-gnueabi-ar
+CXX                     =   /home/work/work_ext/ipc/gk7101/customer/juanvision/crosstool/arm-2011.09/bin/arm-none-linux-gnueabi-g++
+
+CC                      =   /home/work/work_ext/ipc/gk7101/customer/juanvision/crosstool/arm-2011.09/bin/arm-none-linux-gnueabi-gcc
+
+COMPILE_OPTS			=	$(INCLUDES) -I. -DSOCKLEN_T=socklen_t -D_LARGEFILE_SOURCE=1 -D_FILE_OFFSET_BITS=64
+CPLUSPLUS_FLAGS         =   $(COMPILE_OPTS) -DBSD=1 -g -O2 -fpermissive
+
+
+
+ifndef CC
+CC=$(AMBA_MAKEFILE_V)$(CROSS_COMPILE)gcc
+endif
+
+ifndef CXX
+CXX=$(AMBA_MAKEFILE_V)$(CROSS_COMPILE)g++
+endif
+
+ifndef AR
+AR=ar
+endif
+
+ifndef RANLIB
+RANLIB=ranlib
+endif
+
+ECHO=echo
+
+#ifndef CFLAGS
+#CFLAGS = -O2 -Wall -g
+#endif
+
+#path
+RTSP_TOP=/home/work/work_ext/ipc/gk7101/customer/juanvision/ambarella/app/ipcam/rtsp_branch/live555
+
+#CFLAGS += -I$(BSREAD_TOP) -L$(BSREAD_TOP) -lbsreader
+#debug
+
+#ifndef CPLUSPLUS_FLAGS
+CPLUSPLUS_FLAGS += $(INCLUDES)
+#endif
+
+DESTDIR=
+#debug 
+V=1
+
+Q=@
+E=echo
+ifeq ($(V), 1)
+Q=
+E=true
+endif
+
+#CPP
+%.o:%.cpp
+	$(Q)$(CXX) -c $< -o $@ $(CPLUSPLUS_FLAGS)
+	@$(E) "  CXX " $<
