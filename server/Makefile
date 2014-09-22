@@ -16,88 +16,49 @@
 #****************************************************************************
 #*/
 
-
 default: all
 
-AMBABUILD_TOPDIR  = $(word 1, $(subst /app/ipcam, ,$(shell pwd)))
 MODULE_NAME		:= RTSP_server
 
-export AMBABUILD_TOPDIR
+INCLUDES        := -I../UsageEnvironment/include -I../groupsock/include \
+				   -I../liveMedia/include -I../BasicUsageEnvironment/include
 
-INCLUDES = -I../UsageEnvironment/include -I../groupsock/include \
-		-I../liveMedia/include -I../BasicUsageEnvironment/include
+include ../lib.rules
 
--include $(AMBABUILD_TOPDIR)/.config
--include $(AMBABUILD_TOPDIR)/build/app/common.mk
--include $(AMBABUILD_TOPDIR)/app/ipcam/live_555/config.mk
+all:rtsp_server
 
-RTSP_PATH		= $(APP_PATH)
+STREAMER_UNICAST_OBJS = rtsp_server.o \
+		H264VideoFileServerMediaSubsession.o \
+		MyH264VideoStreamFramer.o \
+		MyH264VideoRTPSink.o \
+		H264StreamParser.o \
+		MyJPEGVideoSource.o \
+		MyJPEGVideoRTPSink.o
 
-#STREAMER_OBJS = testH264VideoStreamer.$(OBJ) \
-		MyH264VideoStreamFramer.$(OBJ) \
-		MyH264VideoRTPSink.$(OBJ) \
-		H264StreamParser.$(OBJ) \
-		MyJPEGVideoSource.$(OBJ) \
-		MyJPEGVideoRTPSink.$(OBJ)
+LOCAL_LIBS = ../liveMedia/libliveMedia.a ../groupsock/libgroupsock.a \
+			 ../BasicUsageEnvironment/libBasicUsageEnvironment.a \
+			 ../UsageEnvironment/libUsageEnvironment.a
+GK_LIBS   += ../bsreader/libbsreader.a
 
-STREAMER_UNICAST_OBJS = rtsp_server.$(OBJ) \
-		H264VideoFileServerMediaSubsession.$(OBJ) \
-		MyH264VideoStreamFramer.$(OBJ) \
-		MyH264VideoRTPSink.$(OBJ) \
-		H264StreamParser.$(OBJ) \
-		MyJPEGVideoSource.$(OBJ) \
-		MyJPEGVideoRTPSink.$(OBJ)
+#ifeq ($(CONFIG_ARCH_A5S),y)
+#AMBA_LIBS += $(AMBABUILD_TOPDIR)/prebuild/cavlc/libcavlc.a
+#endif
 
-##################### End of local dependences:
-
-
-##################### Included LIBS:
-USAGE_ENVIRONMENT_DIR = ../UsageEnvironment
-USAGE_ENVIRONMENT_LIB = $(USAGE_ENVIRONMENT_DIR)/libUsageEnvironment.$(LIB_SUFFIX)
-BASIC_USAGE_ENVIRONMENT_DIR = ../BasicUsageEnvironment
-BASIC_USAGE_ENVIRONMENT_LIB = $(BASIC_USAGE_ENVIRONMENT_DIR)/libBasicUsageEnvironment.$(LIB_SUFFIX)
-LIVEMEDIA_DIR = ../liveMedia
-LIVEMEDIA_LIB = $(LIVEMEDIA_DIR)/libliveMedia.$(LIB_SUFFIX)
-GROUPSOCK_DIR = ../groupsock
-GROUPSOCK_LIB = $(GROUPSOCK_DIR)/libgroupsock.$(LIB_SUFFIX)
-LOCAL_LIBS = $(LIVEMEDIA_LIB) $(GROUPSOCK_LIB) \
-			$(BASIC_USAGE_ENVIRONMENT_LIB) \
-			$(USAGE_ENVIRONMENT_LIB)
-AMBA_LIBS = $(AMBABUILD_TOPDIR)/prebuild/bsreader/libbsreader.a
-ifeq ($(CONFIG_ARCH_A5S),y)
-AMBA_LIBS += $(AMBABUILD_TOPDIR)/prebuild/cavlc/libcavlc.a
-endif
 LINK_EXTRA_LIBS = -lpthread
-LIBS =	$(LOCAL_LIBS) $(AMBA_LIBS) $(LINK_EXTRA_LIBS)
-##################### End of Included LIBS:
-		
+LIBS =	$(LOCAL_LIBS) $(GK_LIBS) 
+LD   = $(SYS_LIBS) $(LINK_EXTRA_LIBS)
 
-##################### Executable apps:
 #testH264VideoStreamer$(EXE):	$(STREAMER_OBJS) $(LIBS)
-#	$(LINK)$(EXE_DIR)/$@ $(CONSOLE_LINK_OPTS) $(STREAMER_OBJS) $(LIBS)
+#	@$(CXX) $^ -o $@ $(LD)
 	
-rtsp_server$(EXE):	$(STREAMER_UNICAST_OBJS) $(LIBS)
-	@$(LINK)$(EXE_DIR)/$@ $(CONSOLE_LINK_OPTS) $(STREAMER_UNICAST_OBJS) $(LIBS)
-	$(MKDIR) $(RTSP_PATH)
-	$(AMBA_MAKEFILE_V)cp -a rtsp_server $(RTSP_PATH)
-	$(AMBA_MAKEFILE_V)chmod +x $(RTSP_PATH)/rtsp_server
-##################### End of executable apps:
+rtsp_server:$(STREAMER_UNICAST_OBJS) $(LIBS)
+	@$(CXX) $^ -o $@ $(LD)
+
+clean:
+	@$(ECHO) '  [Clean $(MODULE_NAME)]:'
+	@$(RM) *.o rtsp_server 
 
 
 #STREAMER_APPS = testH264VideoStreamer$(EXE) rtsp_server$(EXE)
-STREAMER_APPS = rtsp_server$(EXE)
 
-ALL_APPS = $(STREAMER_APPS)
-
-MODULE_TARGETS = $(ALL_APPS)
-
-EXE_DIR	=	.
-$(EXE_DIR):
-	@$(MKDIR) $(EXE_DIR)
-
-#### Please don't change the following content order in this file
--include $(AMBABUILD_TOPDIR)/app/ipcam/live_555/rules.mk
-
-##### Any additional, platform-specific rules come here:
-
-
+MODULE_TARGETS = rtsp_server

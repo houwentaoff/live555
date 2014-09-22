@@ -1,19 +1,40 @@
-AR                      =   /home/work/work_ext/ipc/gk7101/customer/juanvision/crosstool/arm-2011.09/bin/arm-none-linux-gnueabi-ar
-CXX                     =   /home/work/work_ext/ipc/gk7101/customer/juanvision/crosstool/arm-2011.09/bin/arm-none-linux-gnueabi-g++
+#/*
+#****************************************************************************
+#*
+#** \file      lib.rules
+#**
+#** \version   
+#**
+#** \brief     
+#**
+#** \attention THIS SAMPLE CODE IS PROVIDED AS IS. GOFORTUNE SEMICONDUCTOR
+#**            ACCEPTS NO RESPONSIBILITY OR LIABILITY FOR ANY ERRORS OR 
+#**            OMMISSIONS.
+#**
+#** (C) Copyright 2012-2013 by GOKE MICROELECTRONICS CO.,LTD
+#**
+#****************************************************************************
+#*/
 
-CC                      =   /home/work/work_ext/ipc/gk7101/customer/juanvision/crosstool/arm-2011.09/bin/arm-none-linux-gnueabi-gcc
+AR                      =   /home/other/ipc/amba_sdk/a5s_linux_sdk/crosstool/arm-2011.09/bin/arm-none-linux-gnueabi-ar
+CXX                     =   /home/other/ipc/amba_sdk/a5s_linux_sdk/crosstool/arm-2011.09/bin/arm-none-linux-gnueabi-g++
 
+CC                      =   /home/other/ipc/amba_sdk/a5s_linux_sdk/crosstool/arm-2011.09/bin/arm-none-linux-gnueabi-gcc
+INCLUDES                +=  -I/home/other/ipc/amba_sdk/a5s_linux_sdk/ambarella/build/include -I/home/other/ipc/amba_sdk/a5s_linux_sdk/ambarella
 COMPILE_OPTS			=	$(INCLUDES) -I. -DSOCKLEN_T=socklen_t -D_LARGEFILE_SOURCE=1 -D_FILE_OFFSET_BITS=64
 CPLUSPLUS_FLAGS         =   $(COMPILE_OPTS) -DBSD=1 -g -O2 -fpermissive
+SYS_LIBS                =   -L/home/other/ipc/amba_sdk/a5s_linux_sdk/crosstool/arm-2011.09/arm-none-linux-gnueabi/libc/lib
+#GK_LIBS                 =  /home/other/ipc/amba_sdk/a5s_linux_sdk/ambarella/prebuild/cavlc/libcavlc.a
+
 
 
 
 ifndef CC
-CC=$(AMBA_MAKEFILE_V)$(CROSS_COMPILE)gcc
+CC=cc
 endif
 
 ifndef CXX
-CXX=$(AMBA_MAKEFILE_V)$(CROSS_COMPILE)g++
+CXX=g++
 endif
 
 ifndef AR
@@ -37,7 +58,8 @@ RTSP_TOP=/home/work/work_ext/ipc/gk7101/customer/juanvision/ambarella/app/ipcam/
 #debug
 
 #ifndef CPLUSPLUS_FLAGS
-CPLUSPLUS_FLAGS += $(INCLUDES)
+#CPLUSPLUS_FLAGS += $(INCLUDES)
+#CPLUSPLUS_FLAGS += $(LIBS)
 #endif
 
 DESTDIR=
@@ -55,3 +77,7 @@ endif
 %.o:%.cpp
 	$(Q)$(CXX) -c $< -o $@ $(CPLUSPLUS_FLAGS)
 	@$(E) "  CXX " $<
+#C
+%.o:%.c
+	$(Q)$(CC) -c $< -o $@ $(C_FLAGS)
+	@$(E) "  C " $<
