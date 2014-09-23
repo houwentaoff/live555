@@ -6,19 +6,18 @@ MODULE_LIBS		 =	lib$(MODULE_NAME).a
 
 INCLUDES = -Iinclude -I../UsageEnvironment/include -I../groupsock/include
 
-include ../config.mk
--include ./depend.mk #依赖关系
+include depend.mk 
 include ../lib.rules
-LIBRARY_LINK	 =	$(AR) rucs 
 
-MODULE_TARGETS = $(MODULE_LIBS) 
+MODULE_TARGETS   = $(MODULE_LIBS) 
+
+.PHONY:clean
 
 all:$(MODULE_TARGETS)
 
 $(MODULE_LIBS): $(LIB_OBJS)
-	@$(LIBRARY_LINK) $@ $(LIB_OBJS)
+	@$(AR) rucs  $@ $^
 
 clean:
 	@echo '  [Clean $(MODULE_NAME)]:'
-	@$(RM) *.$(OBJ) $(MODULE_TARGETS) core *.core *~ include/*~ .depend
-	@$(RM) $(LIB_OBJS)
+	@$(RM) *.o $(MODULE_TARGETS) $(LIB_OBJS)

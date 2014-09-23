@@ -1,20 +1,26 @@
 default: all
 
-AMBABUILD_TOPDIR	= $(word 1, $(subst /app/ipcam, ,$(shell pwd)))
-MODULE_NAME		= groupsock
+MODULE_NAME	   := groupsock
+MODULE_LIBS		= lib$(MODULE_NAME).a
+MODULE_TARGETS  = $(MODULE_LIBS)
 
-export AMBABUILD_TOPDIR
+INCLUDES 		= -Iinclude -I../UsageEnvironment/include
 
-INCLUDES = -Iinclude -I../UsageEnvironment/include
+C_FLAGS  		= $(INCLUDES)
 
--include $(AMBABUILD_TOPDIR)/build/app/common.mk
--include $(AMBABUILD_TOPDIR)/app/ipcam/live_555/config.mk
+include ../lib.rules
 
-LIB_OBJS = GroupsockHelper.$(OBJ) GroupEId.$(OBJ) inet.$(OBJ) \
-		Groupsock.$(OBJ) NetInterface.$(OBJ) NetAddress.$(OBJ) \
-		IOHandlers.$(OBJ)
+LIB_OBJS        = GroupsockHelper.o GroupEId.o inet.o \
+		Groupsock.o NetInterface.o NetAddress.o \
+		IOHandlers.o
 
-MODULE_TARGETS = $(MODULE_LIBS)
+.PHONY:clean
 
--include $(AMBABUILD_TOPDIR)/app/ipcam/live_555/rules.mk
+all:$(MODULE_TARGETS)
 
+$(MODULE_LIBS): $(LIB_OBJS)
+	@$(AR) cr  $@  $^ 
+
+clean:
+	@$(ECHO) '  [Clean $(MODULE_NAME)]:'
+	@$(RM) *.o $(MODULE_TARGETS) $(LIB_OBJS)

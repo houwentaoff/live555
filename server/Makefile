@@ -19,13 +19,14 @@
 default: all
 
 MODULE_NAME		:= RTSP_server
+MODULE_TARGETS   = rtsp_server
 
 INCLUDES        := -I../UsageEnvironment/include -I../groupsock/include \
 				   -I../liveMedia/include -I../BasicUsageEnvironment/include
 
 include ../lib.rules
 
-all:rtsp_server
+all:$(MODULE_TARGETS)
 
 STREAMER_UNICAST_OBJS = rtsp_server.o \
 		H264VideoFileServerMediaSubsession.o \
@@ -38,27 +39,22 @@ STREAMER_UNICAST_OBJS = rtsp_server.o \
 LOCAL_LIBS = ../liveMedia/libliveMedia.a ../groupsock/libgroupsock.a \
 			 ../BasicUsageEnvironment/libBasicUsageEnvironment.a \
 			 ../UsageEnvironment/libUsageEnvironment.a
-GK_LIBS   += ../bsreader/libbsreader.a
+GK_LIBS   := ../bsreader/libbsreader.a $(GK_LIBS)
 
 #ifeq ($(CONFIG_ARCH_A5S),y)
 #AMBA_LIBS += $(AMBABUILD_TOPDIR)/prebuild/cavlc/libcavlc.a
 #endif
 
 LINK_EXTRA_LIBS = -lpthread
-LIBS =	$(LOCAL_LIBS) $(GK_LIBS) 
-LD   = $(SYS_LIBS) $(LINK_EXTRA_LIBS)
+LIBS 			=	$(LOCAL_LIBS) $(GK_LIBS) 
+LD   			= $(SYS_LIBS) $(LINK_EXTRA_LIBS)
 
-#testH264VideoStreamer$(EXE):	$(STREAMER_OBJS) $(LIBS)
-#	@$(CXX) $^ -o $@ $(LD)
+testH264VideoStreamer:	$(STREAMER_OBJS) $(LIBS)
+	@$(CXX) $^ -o $@ $(LD)
 	
 rtsp_server:$(STREAMER_UNICAST_OBJS) $(LIBS)
 	@$(CXX) $^ -o $@ $(LD)
 
 clean:
 	@$(ECHO) '  [Clean $(MODULE_NAME)]:'
-	@$(RM) *.o rtsp_server 
-
-
-#STREAMER_APPS = testH264VideoStreamer$(EXE) rtsp_server$(EXE)
-
-MODULE_TARGETS = rtsp_server
+	@$(RM) *.o rtsp_server testH264VideoStreamer
