@@ -1,9 +1,9 @@
 /*
 ****************************************************************************
 *
-** \file      rtsp_server.cpp
+** \file      ./server/rtsp_server.cpp
 **
-** \version   
+** \version   $Id:
 **
 ** \brief     rtsp server
 **
@@ -36,23 +36,22 @@
 #include "iav_drv.h"
 #include "iav_drv_ex.h"
 #include "bsreader.h"
-#include "config.h"
+//#include "config.h"
 
-#ifdef CONFIG_ARCH_A5S
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <limits.h>
+
+#ifdef CONFIG_ARCH_GK7101
+#define	MAX_ENCODE_STREAM_NUM	(2)
+#else
 #define	MAX_ENCODE_STREAM_NUM	(4)
-#else
-#ifdef CONFIG_ARCH_A7
-#define	MAX_ENCODE_STREAM_NUM	(2)
-#else
-#ifdef CONFIG_ARCH_S2
-#define	MAX_ENCODE_STREAM_NUM	(2)
-#endif
-#endif
 #endif
 
 UsageEnvironment* env;
 
-char const* descriptionString = "Session streamed by \"Amba RTSP Server\"";
+char const* descriptionString = "Session streamed by \"GOKE RTSP Server\"";
 
 
 static portNumBits clientPort;
@@ -73,6 +72,165 @@ Boolean reuseFirstSource = True;
 static struct option long_options[] = {
 	{0, 0, 0, 0}	
 };
+/* Last element is marked by mult == 0 */
+struct suffix_mult {
+	char suffix[4];
+	unsigned mult;
+};
+static const struct suffix_mult rtsp_server_sfx[] = {
+	{ "c", 1 },
+	{ "w", 2 },
+	{ "b", 512 },
+	{ "kD", 1000 },
+	{ "k", 1024 },
+	{ "K", 1024 },  
+	{ "MD", 1000000 },
+	{ "M", 1048576 },
+	{ "GD", 1000000000 },
+	{ "G", 1073741824 },
+	{ "", 0 }
+};
+
+static struct {
+   unsigned long num;
+   unsigned long size[6];
+} Z;
+
+static void bb_show_usage(const char *applet_name)
+{
+	fprintf(stderr, "Usage: %s [num=stream_num[1 ... 4]] [size=size1,size2,size3,size4 c/w/b/kD/k/K/MD/M/GD/G]....\n c=1 byte, w=2 b=512 kD=1000 k/K=1024 MD=1000000 M=1024*1024 GD=1000*1000*1000 G=1024*1024*1024 bytes. \neg:.%s num=4 size=4M,2M,1M,1M\n",
+		applet_name, applet_name);
+	exit(-1);
+}
+static int  index_in_strings(const char *strings, const char *key)
+{
+	int idx = 0;
+
+	while (*strings) {
+		if (strcmp(strings, key) == 0) {
+			return idx;
+		}
+		strings += strlen(strings) + 1; /* skip NUL */
+		idx++;
+	}
+	return (-1);
+}
+static unsigned long xatoul_range_sfx(const char *numstr, unsigned long lower,  unsigned long upper, const struct suffix_mult *suffixes)
+{
+	unsigned long r;
+	char *e;
+    
+    	/* Disallow '-' and any leading whitespace. */
+	if (*numstr == '-' || *numstr == '+' || isspace(*numstr))
+		goto inval;
+
+	r = strtoul(numstr, &e, 10);
+	if (numstr == e)
+		goto inval;
+    /* error / no digits / illegal trailing chars */
+    /* Do optional suffix parsing.  Allow 'empty' suffix tables.
+	 * Note that we also allow nul suffixes with associated multipliers,
+	 * to allow for scaling of the numstr by some default multiplier. */
+	if (suffixes) {
+		while (suffixes->mult) {
+			if (strcmp(suffixes->suffix, e) == 0) {
+				if (ULONG_MAX / suffixes->mult < r)
+					goto range; /* overflow! */
+				r *= suffixes->mult;
+				goto chk_range;
+			}
+			++suffixes;
+		}
+	}
+
+	/* Note: trailing space is an error.
+	 * It would be easy enough to allow though if desired. */
+	if (*e)
+		goto inval;
+ chk_range:
+	/* Finally, check for range limits. */
+	if (r >= lower && r <= upper)
+		return r;
+ range:
+	fprintf(stderr, "number %s is not in %llu..%llu range\n",
+		numstr, (unsigned long long)lower,
+		(unsigned long long)upper);
+	exit(-2);
+ inval:
+	fprintf(stderr, "invalid number '%s'\n", numstr);    
+	exit(-3);
+}
+
+static int parse_param ( int argc, char *argv[] )
+{
+    static const char keywords[] =
+        "num\0""size\0"
+        ;
+    enum {
+        OP_num = 0,
+        OP_size,
+    };
+
+    ssize_t n;
+    unsigned long * psize=Z.size;
+
+    if (1 == argc)
+    {
+        Z.num = MAX_ENCODE_STREAM_NUM;
+        Z.size[0] = 4*1024*1024;/*4M*/
+        Z.size[1] = 1*1024*1024;/*1M*/
+        Z.size[2] = 1*1024*1024;/*1M*/
+        Z.size[3] = 1*1024*1024;/*1M*/
+        return (0);
+    }
+	memset(&Z, 0, sizeof(Z));
+    psize = Z.size;
+
+	for (n = 1; argv[n]; n++) {
+		int what;
+		char *val;
+		char *arg = argv[n];    
+        
+		val = strchr(arg, '=');
+		if (val == NULL)
+			bb_show_usage(argv[0]);
+		*val = '\0';
+		what = index_in_strings(keywords, arg);
+		if (what < 0)
+			bb_show_usage(argv[0]);
+		/* *val = '='; - to preserve ps listing? */
+		val++;
+
+		if (what == OP_num) {
+            Z.num = atol(val);
+            if (Z.num > 4){
+                bb_show_usage(argv[0]);
+            }
+			/*continue;*/
+		}
+        if (what == OP_size) {
+			while (1) {
+				/* find ',', replace them with NUL so we can use val for
+				 * index_in_strings() without copying.
+				 * We rely on val being non-null, else strchr would fault.
+				 */
+				arg = strchr(val, ',');
+				if (arg)
+					*arg = '\0';
+                *(psize++) = xatoul_range_sfx(val, 1, ((size_t)-1L)/2, rtsp_server_sfx);
+                
+				if (!arg) /* no ',' left, so this was the last specifier */
+					break;
+				/* *arg = ','; - to preserve ps listing? */
+				val = arg + 1; /* skip this keyword and ',' */
+			}
+			continue; /* we trashed 'what', can't fall through */
+		}
+    }
+
+    //printf("Z.num[%lu],size[%lu][%ld][%lu][%lu]\n", Z.num, Z.size[0], Z.size[1], Z.size[2], Z.size[3]);
+    return 0;
+}				
 
 static const char *short_options = "c:sf:g:";
 
@@ -131,6 +289,7 @@ int map_bsb(int fd_iav)
 int bsreader()
 {
 	int fd_iav;
+    int i=0;
 	bsreader_init_data_t  init_data;
 
 	if ((fd_iav = open("/dev/iav", O_RDWR, 0)) < 0) {
@@ -144,16 +303,21 @@ int bsreader()
 
 	memset(&init_data, 0, sizeof(init_data));
 	init_data.fd_iav = fd_iav;
-	init_data.max_stream_num = MAX_ENCODE_STREAM_NUM;
-	init_data.ring_buf_size[0] = 1024*1024*4;  // 4MB
-	init_data.ring_buf_size[1] = 1024*1024*2;  // 2MB
-	init_data.ring_buf_size[2] = 1024*1024*1;  // 1MB
-	init_data.ring_buf_size[3] = 1024*1024*1;  // 1MB
-
+	for (i=0;i<Z.num;i++)
+    {
+        init_data.ring_buf_size[i] = Z.size[i];
+    }
+    init_data.max_stream_num = Z.num;
+    
 	/* Enable cavlc encoding when configured.
 	 * This option will use more memory in bsreader on A5s arch.
 	 */
-	init_data.cavlc_possible = 1;
+	init_data.cavlc_possible = 0;
+    printf("Z.num[%lu]init_data.max_stream_num[%d],size[%d][%d][%d][%d]\n",
+        Z.num,
+        init_data.max_stream_num, init_data.ring_buf_size[0],
+        init_data.ring_buf_size[1],init_data.ring_buf_size[2],
+        init_data.ring_buf_size[3]);
 
 	if (bsreader_init(&init_data) < 0) {
 		printf("bsreader init failed \n");
@@ -192,11 +356,11 @@ void create_live_stream(RTSPServer * rtspServer, int stream,
 
 void setup_streams(RTSPServer * rtspServer)
 {
-	TaskScheduler * scheduler[MAX_ENCODE_STREAM_NUM];
-	UsageEnvironment * env_stream[MAX_ENCODE_STREAM_NUM];
+	TaskScheduler * scheduler[Z.num];
+	UsageEnvironment * env_stream[Z.num];
 	int i;
 
-	for (i = 0; i < MAX_ENCODE_STREAM_NUM; ++i) {
+	for (i = 0; i < Z.num; ++i) {
 		scheduler[i] = BasicTaskScheduler::createNew();
 		env_stream[i] = BasicUsageEnvironment::createNew(*scheduler[i]);
 		create_live_stream(rtspServer, i, env_stream[i]);
@@ -217,10 +381,14 @@ int main(int argc, char** argv)
 	signal(SIGQUIT, sighandler);
 	signal(SIGTERM, sighandler);
 
+#if 0
 	if (init_param(argc, argv) < 0) {
 		printf("init param failed \n");
 		return -1;
 	}
+#else
+    parse_param(argc, argv);
+#endif
 
 	// Begin by setting up our usage environment:
 	TaskScheduler* scheduler = BasicTaskScheduler::createNew();

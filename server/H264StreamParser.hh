@@ -1,3 +1,21 @@
+/*
+****************************************************************************
+*
+** \file      ./server/H264StreamParser.hh
+**
+** \version   $Id:
+**
+** \brief     
+**
+** \attention THIS SAMPLE CODE IS PROVIDED AS IS. GOFORTUNE SEMICONDUCTOR
+**            ACCEPTS NO RESPONSIBILITY OR LIABILITY FOR ANY ERRORS OR 
+**            OMMISSIONS.
+**
+** (C) Copyright 2012-2013 by GOKE MICROELECTRONICS CO.,LTD
+**
+****************************************************************************
+*/
+
 #ifndef __H264_STREAM_PARSER_HH__
 #define __H264_STREAM_PARSER_HH__
 #include "../liveMedia/StreamParser.hh"

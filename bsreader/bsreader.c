@@ -1,16 +1,21 @@
 /*
- * bsreader_a5s.c
- *
- * History:
- *	2010/5/13 - [Louis Sun] created file 	
- * Copyright (C) 2007-2012, Ambarella, Inc.
- *
- * All rights reserved. No Part of this file may be reproduced, stored
- * in a retrieval system, or transmitted, in any form, or by any means,
- * electronic, mechanical, photocopying, recording, or otherwise,
- * without the prior consent of Ambarella, Inc.
- *
- */
+****************************************************************************
+*
+** \file      ./bsreader/bsreader.c
+**
+** \version   $Id:
+**
+** \brief     
+**
+** \attention THIS SAMPLE CODE IS PROVIDED AS IS. GOFORTUNE SEMICONDUCTOR
+**            ACCEPTS NO RESPONSIBILITY OR LIABILITY FOR ANY ERRORS OR 
+**            OMMISSIONS.
+**
+** (C) Copyright 2012-2013 by GOKE MICROELECTRONICS CO.,LTD
+**
+****************************************************************************
+*/
+
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -27,7 +32,11 @@
 #include "basetypes.h"
 #include "iav_drv.h"
 #include "bsreader.h"
+
+#ifdef CAVLCLIB
 #include "cavlclib.h"
+#endif
+
 #include "fifo.h"
 #include "debug.h"
 
@@ -65,6 +74,7 @@ static fifo_t* myFIFO[MAX_BS_READER_SOURCE_STREAM];
  *				private functions
  *
  *****************************************************************************/
+ #ifdef CAVLCLIB
 /**
  * @brief cavlc ?
  *
@@ -88,6 +98,46 @@ static int destroy_cavlc(void)
 	}
 	return 0;
 }
+
+/* called by fetch_one_frame when encoding stream type is CAVLC */
+static int encode_to_cavlc(bits_info_ex_t * bs_info, u8 **cavlc_addr, u32 *cavlc_size)
+{
+	bits_info_ex_t pjpeg_info;
+	u8 *frame_start;
+	u32 frame_size;
+	pjpeg_info = *bs_info;
+	//cavlc library can handle wrap around of each pjpeg frame by itself, 
+	//and cavlc library only need pjpeg start addr and size. 
+	if (cavlc_encode_frame(&pjpeg_info, &frame_start, &frame_size) < 0) {
+		printf("cavlc_encode_frame failed \n");
+		return -2;
+	}
+
+	*cavlc_addr = frame_start;
+	*cavlc_size = frame_size;
+	return 0;
+}
+#else
+ static int init_cavlc(void)
+{
+
+	return 0;
+}
+
+static int destroy_cavlc(void)
+{
+
+	return 0;
+}
+
+/* called by fetch_one_frame when encoding stream type is CAVLC */
+static int encode_to_cavlc(bits_info_ex_t * bs_info, u8 **cavlc_addr, u32 *cavlc_size)
+{
+    (void)bs_info; (void) cavlc_addr; (void) cavlc_size;
+
+	return 0;
+}
+#endif
 
 static void inline lock_all(void)
 {
@@ -115,24 +165,7 @@ static inline void update_stream_session_id(bits_info_ex_t * bs_info)
 	G_stream_session_id[stream] = session_id;
 }
 
-/* called by fetch_one_frame when encoding stream type is CAVLC */
-static int encode_to_cavlc(bits_info_ex_t * bs_info, u8 **cavlc_addr, u32 *cavlc_size)
-{
-	bits_info_ex_t pjpeg_info;
-	u8 *frame_start;
-	u32 frame_size;
-	pjpeg_info = *bs_info;
-	//cavlc library can handle wrap around of each pjpeg frame by itself, 
-	//and cavlc library only need pjpeg start addr and size. 
-	if (cavlc_encode_frame(&pjpeg_info, &frame_start, &frame_size) < 0) {
-		printf("cavlc_encode_frame failed \n");
-		return -2;
-	}
 
-	*cavlc_addr = frame_start;
-	*cavlc_size = frame_size;
-	return 0;
-}
 
 
 /*
@@ -186,14 +219,14 @@ static int fetch_one_frame(bsreader_frame_info_t * bs_info)
 		ret = -1;
 		goto error_catch;
 	}
-
+#ifdef CAVLCLIB
 	//check cavlc
 	if ((bits_info.cavlc_pjpeg) && (!G_bsreader_init_data.cavlc_possible)) {
 		printf("cavlc_possible not init to 1, but there is cavlc pjpeg received, check init setting\n");
 		ret = -3;
 		goto error_catch;
 	}
-
+#endif
 	memset(bs_info, 0, sizeof(*bs_info));	//clear zero
 	bs_info->bs_info.stream_id= bits_info.stream_id;
 	bs_info->bs_info.session_id = bits_info.session_id;
@@ -358,6 +391,7 @@ static int init_iav(void)
 {
 	iav_mmap_t mmap;
 	iav_state_info_t info;
+    FUN_IN();
 	if (G_iav_fd != -1) {
 		printf("iav already initialized \n");
 		return -1;
@@ -368,7 +402,7 @@ static int init_iav(void)
 		return -1;
 	}
 	G_iav_fd = G_bsreader_init_data.fd_iav;
-
+  
 	if (ioctl(G_iav_fd, IAV_IOC_GET_STATE_INFO, &info) < 0) {
 		perror("IAV_IOC_GET_STATE_INFO");
 		return -1;
@@ -395,7 +429,7 @@ static int init_iav(void)
 		printf("please call IAV_IOC_MAP_BSB or IAV_IOC_MAP_BSB2 before open bsreader\n");
 		return -1;
 	}
-
+    FUN_OUT();
 	return 0;
 }
 
@@ -440,6 +474,7 @@ int bsreader_open(void)
 {
 	int ret = 0;
 	u32 max_entry_num;
+    int i=0;
 
     FUN_IN("MAX STREAM [%d]\n", MAX_BS_READER_SOURCE_STREAM);
 	
@@ -458,10 +493,10 @@ int bsreader_open(void)
     PRT_DBG("MAX item num[%d]\n", max_entry_num);
 
     /*buf , head , packge .'3' kind of ringbuf*/
-	myFIFO[0] = fifo_create(G_bsreader_init_data.ring_buf_size[0], sizeof(bs_info_t), max_entry_num);
-	myFIFO[1] = fifo_create(G_bsreader_init_data.ring_buf_size[1], sizeof(bs_info_t), max_entry_num);
-	myFIFO[2] = fifo_create(G_bsreader_init_data.ring_buf_size[2], sizeof(bs_info_t), max_entry_num);
-	myFIFO[3] = fifo_create(G_bsreader_init_data.ring_buf_size[3], sizeof(bs_info_t), max_entry_num);
+    for (i=0;i<G_bsreader_init_data.max_stream_num;i++)
+    {
+        myFIFO[i] = fifo_create(G_bsreader_init_data.ring_buf_size[i], sizeof(bs_info_t), max_entry_num);
+    }
 
 	//init cavlc
 	if (G_bsreader_init_data.cavlc_possible) {
@@ -500,6 +535,7 @@ error_catch:
 int bsreader_close(void)
 {
 	int ret = 0;
+    int i=0;
 
 	lock_all();
 	//TODO, possible release
@@ -515,10 +551,8 @@ int bsreader_close(void)
 		DEBUG_PRINT("main working thread canceled \n");
 	}
 
-	fifo_close(myFIFO[0]);
-	fifo_close(myFIFO[1]);
-	fifo_close(myFIFO[2]);
-	fifo_close(myFIFO[3]);
+    for (i=0;i<G_bsreader_init_data.max_stream_num;i++)
+	    fifo_close(myFIFO[i]);
 
 	if (G_bsreader_init_data.cavlc_possible) {
 		destroy_cavlc();

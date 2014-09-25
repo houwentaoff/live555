@@ -1,2 +1,8 @@
 For documentation and instructions for building this software,
 see <http://www.live555.com/liveMedia/>
+
+Compile:
+modified file 'lib.rules' and make;
+
+Use:
+used like  ./rtsp_server num=3 size=4M,1M,1M 

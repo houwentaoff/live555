@@ -3,7 +3,7 @@
 #*
 #** \file      Makefile
 #**
-#** \version   
+#** \version   $Id:
 #**
 #** \brief     
 #**
@@ -41,12 +41,8 @@ LOCAL_LIBS = ../liveMedia/libliveMedia.a ../groupsock/libgroupsock.a \
 			 ../UsageEnvironment/libUsageEnvironment.a
 GK_LIBS   := ../bsreader/libbsreader.a $(GK_LIBS)
 
-#ifeq ($(CONFIG_ARCH_A5S),y)
-#AMBA_LIBS += $(AMBABUILD_TOPDIR)/prebuild/cavlc/libcavlc.a
-#endif
-
 LINK_EXTRA_LIBS = -lpthread
-LIBS 			=	$(LOCAL_LIBS) $(GK_LIBS) 
+LIBS 			= $(LOCAL_LIBS) $(GK_LIBS) 
 LD   			= $(SYS_LIBS) $(LINK_EXTRA_LIBS)
 
 testH264VideoStreamer:	$(STREAMER_OBJS) $(LIBS)

@@ -1,3 +1,21 @@
+/*
+****************************************************************************
+*
+** \file      ./server/MyH264VideoStreamFramer.hh
+**
+** \version   $Id:
+**
+** \brief     
+**
+** \attention THIS SAMPLE CODE IS PROVIDED AS IS. GOFORTUNE SEMICONDUCTOR
+**            ACCEPTS NO RESPONSIBILITY OR LIABILITY FOR ANY ERRORS OR 
+**            OMMISSIONS.
+**
+** (C) Copyright 2012-2013 by GOKE MICROELECTRONICS CO.,LTD
+**
+****************************************************************************
+*/
+
 #ifndef __MY_H264_VIDEO_STREAM_FRAMER_HH__
 #define __MY_H264_VIDEO_STREAM_FRAMER_HH__
 #include "../liveMedia/include/H264VideoStreamFramer.hh"

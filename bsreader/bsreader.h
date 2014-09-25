@@ -1,16 +1,20 @@
 /*
- * bsreader.h
- *
- * History:
- *	2010/5/13 - [Louis Sun] created file
- * Copyright (C) 2007-2010, Ambarella, Inc.
- *
- * All rights reserved. No Part of this file may be reproduced, stored
- * in a retrieval system, or transmitted, in any form, or by any means,
- * electronic, mechanical, photocopying, recording, or otherwise,
- * without the prior consent of Ambarella, Inc.
- *
- */
+****************************************************************************
+*
+** \file      ./bsreader/bsreader.h
+**
+** \version   $Id:
+**
+** \brief     
+**
+** \attention THIS SAMPLE CODE IS PROVIDED AS IS. GOFORTUNE SEMICONDUCTOR
+**            ACCEPTS NO RESPONSIBILITY OR LIABILITY FOR ANY ERRORS OR 
+**            OMMISSIONS.
+**
+** (C) Copyright 2012-2013 by GOKE MICROELECTRONICS CO.,LTD
+**
+****************************************************************************
+*/
 
 #ifndef __BSREADER_LIB_H__
 #define __BSREADER_LIB_H__

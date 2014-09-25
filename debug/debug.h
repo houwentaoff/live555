@@ -3,7 +3,7 @@
 *
 ** \file      debug.h
 **
-** \version   
+** \version   $Id:
 **
 ** \brief     
 **
@@ -19,7 +19,7 @@
 #define __DEBUG_H__
 
 /* #####   DEBUG MACROS   ########################################################### */
-#define     INOUT_DEBUG                          1  /*1 is open , o is close */
+#define     INOUT_DEBUG                            1  /*1 is open , o is close */
 #define     LIVE555_DEBUG                          1  /*1 is open , 0 is close */
 #define     LIVE555_ERROR                          1  /*1 is open , 0 is close */
 
@@ -38,7 +38,7 @@
 #endif
 
 #if LIVE555_DEBUG
-#define PRT_DBG(fmt, args...)             printf("%s():line[%d]"fmt"\n", __func__, ##args)/*  */
+#define PRT_DBG(fmt, args...)             printf("%s():line[%d]"fmt"\n", __func__, __LINE__, ##args)/*  */
 #else
 #define PRT_DBG(fmt, args...)
 #endif

@@ -1,3 +1,21 @@
+/*
+****************************************************************************
+*
+** \file      ./server/MyH264VideoStreamFramer.cpp
+**
+** \version   $Id:
+**
+** \brief     
+**
+** \attention THIS SAMPLE CODE IS PROVIDED AS IS. GOFORTUNE SEMICONDUCTOR
+**            ACCEPTS NO RESPONSIBILITY OR LIABILITY FOR ANY ERRORS OR 
+**            OMMISSIONS.
+**
+** (C) Copyright 2012-2013 by GOKE MICROELECTRONICS CO.,LTD
+**
+****************************************************************************
+*/
+
 #include <stdio.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>

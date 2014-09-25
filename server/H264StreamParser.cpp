@@ -1,9 +1,27 @@
+/*
+****************************************************************************
+*
+** \file      ./server/H264StreamParser.cpp
+**
+** \version   $Id:
+**
+** \brief     H264StreamParser
+**
+** \attention THIS SAMPLE CODE IS PROVIDED AS IS. GOFORTUNE SEMICONDUCTOR
+**            ACCEPTS NO RESPONSIBILITY OR LIABILITY FOR ANY ERRORS OR 
+**            OMMISSIONS.
+**
+** (C) Copyright 2012-2013 by GOKE MICROELECTRONICS CO.,LTD
+**
+****************************************************************************
+*/
 #include <stdio.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <basetypes.h>
 #include "iav_drv.h"
 #include "iav_drv_ex.h"
+
 #include "bsreader.h"
 #include "H264StreamParser.hh"
 #include "MyH264VideoStreamFramer.hh"

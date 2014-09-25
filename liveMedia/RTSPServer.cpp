@@ -65,7 +65,7 @@ void RTSPServer::addServerMediaSession(ServerMediaSession* serverMediaSession) {
 }
 
 ServerMediaSession* RTSPServer::lookupServerMediaSession(char const* streamName) {
-  printf("Sean ===>%s():streamName[%s]\n", __func__, streamName);
+  printf("===>%s():streamName[%s]\n", __func__, streamName);
   return (ServerMediaSession*)(fServerMediaSessions->Lookup(streamName));
 }
 
