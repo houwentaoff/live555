@@ -411,8 +411,7 @@ static int init_iav(void)
 	//check iav state, must start bsreader before start encoding to ensure no frame missing
 	if ((info.state != IAV_STATE_IDLE) &&
 		(info.state != IAV_STATE_INIT) &&
-		(info.state != IAV_STATE_PREVIEW)&&
-		(info.state != IAV_STATE_ENCODING)) {
+		(info.state != IAV_STATE_PREVIEW)) {
 		printf("Sean iav state must be in either idle or preview before open bsreader\n");
 		return -1;
 	}

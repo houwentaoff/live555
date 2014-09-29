@@ -411,7 +411,10 @@ int main(int argc, char** argv)
 		*env << "Failed to create RTSP server: " << env->getResultMsg() << "\n";
 		exit(1);
 	}
-	bsreader();
+	if (0 != bsreader())
+	{
+        exit(-4);
+    }
 
 	setup_streams(rtspServer);
 
